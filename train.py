@@ -39,20 +39,22 @@ def save_state(path, model, optimizer=None, scheduler=None, epoch=0, best_valid_
 
 
 def calculate_and_set_stats(model, train_dataset):
-    database_name = [db for db in ["hutubs", "riec"] if db not in model.stats]
-    items = []
+    database_names = [database_name for database_name in ["hutubs", "riec"] if database_name not in model.stats]
+    items = {}
+    for database_name in database_names:
+        items[database_name] = {"hrtf_mag": [], "itd": []}
 
     for sofa_path in train_dataset.sofa_paths:
         item = train_dataset.get_data(sofa_path)
-        dataset_name = item["dataset_name"]
+        database_name = item["dataset_name"]
         for data_type in ["hrtf_mag", "itd"]:
-            items[dataset_name][data_type].append(item[data_type].unsqueeze(0))
+            items[database_name][data_type].append(item[data_type].unsqueeze(0))
 
-    for dataset_name in database_name:
+    for database_name in database_names:
         for data_type in ["hrtf_mag", "itd"]:
-            items_cat = th.cat(items[dataset_name][data_type], dim=0)
+            items_cat = th.cat(items[database_name][data_type], dim=0)
             mean, std = th.mean(items_cat), th.std(items_cat)
-            model.set_stats(mean, std, dataset_name, data_type)
+            model.set_stats(mean, std, database_name, data_type)
 
 
 def valid(config, model, valid_loader, device):
@@ -95,6 +97,7 @@ def train(args):
     exp_dir = f"exp/{os.path.basename(args.config_path).split('.')[0]}"
     if os.path.isdir(exp_dir) and not args.forced:
         raise RuntimeError(f"{exp_dir} already exists! Use -f option to overwrite.")
+    os.makedirs(exp_dir, exist_ok=True)
 
     # prepare dataset
     train_dataset = HRTFDataset(config.data, config.training.num_mes_pos_train, (config.data.hutubs.sub_id.train, config.data.riec.sub_id.train))
@@ -119,7 +122,7 @@ def train(args):
     print(model)
     print("=======")
 
-    for epoch in range(epoch_offset, config.training.epochs):
+    for epoch in range(epoch_offset + 1, config.training.epochs + 1):
         print(f"\nEpoch {epoch}")
         model.train()
         for data, num_mes_pos_tup in tqdm(train_loader):
@@ -159,8 +162,12 @@ def train(args):
             save_state(save_path_log, model, optimizer, scheduler, epoch, best_valid_loss)
             print(f"Saved in {save_path_log}.")
 
+    save_path_last = f"{exp_dir}/checkpoint_final_{epoch}epoch.pt"
+    save_state(save_path_last, model, optimizer, scheduler, epoch, best_valid_loss)
+    print(f"Saved in {save_path_last}.")
 
-def main():
+
+if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config_path", default="./config/v1.yaml")
     parser.add_argument("-d", "--device", default="cuda")

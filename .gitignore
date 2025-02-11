@@ -1,8 +1,10 @@
 data/*/*
 .python-*
 config/old
+*v1_dbg*
 notebook/boe.ipynb
 boe
 __pycache__
 .vscode
 exp/old
+cuda-*
