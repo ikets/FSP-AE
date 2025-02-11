@@ -4,18 +4,21 @@ exp:
 data:
   max_freq: 16000.0
   num_freq_bin: 128
+  fs_up: 384000.0
   hutubs:
     path: "./data/hutubs"
-    id:
+    sub_id:
       train: [0, 77]
       valid: [77, 87]
       test:  [88, 95]
+    front_id: 202
   riec:
     path: "./data/riec"
-    id:
+    sub_id:
       train: [0, 86]
       valid: [86, 97]
       test:  [97, 105]
+    front_id: 216
 
 training:
   epochs: 1400
