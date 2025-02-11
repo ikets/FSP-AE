@@ -4,6 +4,7 @@ import os
 import random
 import torch as th
 from torch.utils.data import DataLoader
+from tqdm import tqdm
 
 from dataset import HRTFDataset
 from loss import LSD
@@ -55,11 +56,11 @@ def calculate_and_set_stats(model, train_dataset):
 
 
 def valid(config, model, valid_loader, device):
-    with th.no_grad:
+    with th.no_grad():
         loss_lsd = LSD()
         loss_ae = th.nn.L1Loss()
-        loss_dict = {"lsd": 0.0, "ae_itd": 0.0, "all": 0.0}
-        for data, num_mes_pos_tup in valid_loader:
+        loss_dict = {"lsd": 0.0, "ae_itd": 0.0}
+        for data, num_mes_pos_tup in tqdm(valid_loader):
             num_mes_pos = num_mes_pos_tup[0]
             hrtf_mag, itd, freq, pos_cart_tar, dataset_name = data["hrtf_mag"], data["itd"], data["frequency"], data["srcpos_cart"], data["dataset_name"][0]
 
@@ -74,13 +75,13 @@ def valid(config, model, valid_loader, device):
             loss_dict["lsd"] += loss_lsd(hrtf_mag_pred, hrtf_mag, dim=3)
             loss_dict["ae_itd"] += loss_ae(itd_pred, itd)
 
+        loss_all = 0.0
         for k, v in loss_dict.items():
             v /= len(valid_loader)
+            loss_all += config.training.loss_weight[k] * v
+        print(f"all: {loss_all}, lsd: {loss_dict['lsd'].item()}, ae_itd: {loss_dict['ae_itd'].item()}")
 
-        for k, v in loss_dict.items():
-            loss_dict["all"] += config.training.loss_weight[k] * v
-
-    return loss_dict["all"]
+    return loss_all
 
 
 def train(args):
@@ -119,8 +120,9 @@ def train(args):
     print("=======")
 
     for epoch in range(epoch_offset, config.training.epochs):
+        print(f"\nEpoch {epoch}")
         model.train()
-        for data, num_mes_pos_tup in train_loader:
+        for data, num_mes_pos_tup in tqdm(train_loader):
             num_mes_pos = num_mes_pos_tup[0]
             hrtf_mag, itd, freq, pos_cart_tar, dataset_name = data["hrtf_mag"], data["itd"], data["frequency"], data["srcpos_cart"], data["dataset_name"][0]
 
