@@ -1,10 +1,7 @@
-# import numpy as np
 import torch as th
 import torch.nn as nn
-# import torch.nn.functional as F
 
-from modules import Net, HyperLinearBlock, FourierFeatureMapping
-# from utils import Net
+from .modules import Net, HyperLinearBlock, FourierFeatureMapping
 
 
 class FreqSrcPosCondAutoEncoder(Net):
@@ -15,8 +12,8 @@ class FreqSrcPosCondAutoEncoder(Net):
         # Stats for standardization
         self.stats = {
             "none": {
-                "hrtf_mag": [0.0, 1.0],
-                "std": [0.0, 1.0]
+                "hrtf_mag": {"mean": 0.0, "std": 1.0},
+                "itd": {"mean": 0.0, "std": 1.0}
             }
         }
 
@@ -34,7 +31,7 @@ class FreqSrcPosCondAutoEncoder(Net):
         self.num_mes_norm = config.num_mes_norm
 
         # Encoder
-        dim_cond_vec_enc = config.fourier_feature_mapping.num_features.source_position * 2 + config.fourier_feature_mapping.num_features.freq * 2 + 2
+        dim_cond_vec_enc = config.fourier_feature_mapping.num_features.source_position * 2 + config.fourier_feature_mapping.num_features.frequency * 2 + 2
         modules = []
         for l_e in range(config.encoder.num_layers):
             in_dim = 1 if l_e == 0 else config.encoder.mid_dim
@@ -51,7 +48,7 @@ class FreqSrcPosCondAutoEncoder(Net):
         self.encoder = nn.Sequential(*modules)
 
         # Decoder
-        dim_cond_vec_dec = config.fourier_feature_mapping.num_features.source_position * 2 + config.fourier_feature_mapping.num_features.freq * 2 + 1
+        dim_cond_vec_dec = config.fourier_feature_mapping.num_features.source_position * 2 + config.fourier_feature_mapping.num_features.frequency * 2 + 1
         modules = []
         for l_d in range(config.decoder.num_layers):
             in_dim = config.decoder.in_dim if l_d == 0 else config.decoder.mid_dim
@@ -80,15 +77,16 @@ class FreqSrcPosCondAutoEncoder(Net):
         return output
 
     def get_conditioning_vector(self, pos_cart, freq, use_num_pos=False, device="cuda"):
-        S, B, _ = pos_cart.shape[1]
-        L = freq.shape[0]
+        S, B, _ = pos_cart.shape
+        L = freq.shape[1]
         conditioning_vector = []
 
         pos_cart = pos_cart / self.radius_norm  # (S, B, 3)
+        pos_cart_lr_flip = pos_cart * th.tensor([1, -1, 1], device=device)[None, None, :]  # (S, B, 3)
+
         pos_cart = self.ffm_srcpos(pos_cart)  # (S, B, 32)
         pos_cart = pos_cart.unsqueeze(2).tile(1, 1, L, 1)  # (S, B, L, 32)
 
-        pos_cart_lr_flip = pos_cart * th.tensor([1, -1, 1], device=device)[None, None, :]  # (S, B, 3)
         pos_cart_lr_flip = self.ffm_srcpos(pos_cart_lr_flip)  # (S, B, 32)
         pos_cart_lr_flip = pos_cart_lr_flip.unsqueeze(2).tile(1, 1, L, 1)  # (S, B, L, 32)
 
@@ -96,7 +94,7 @@ class FreqSrcPosCondAutoEncoder(Net):
         conditioning_vector.append(pos_cart_all)
 
         freq = freq / self.freq_norm
-        freq = self.ffm_freq(freq.unsqueeze(-1))  # (L, 16)
+        freq = self.ffm_freq(freq.unsqueeze(-1))  # (1, L, 16)
         freq = freq.reshape(1, 1, L, -1).tile(S, B, 2, 1)  # (S, B, 2L, 16)
         freq = th.cat((freq, th.zeros(S, B, 1, freq.shape[-1], device=device, dtype=th.float32)), dim=2)  # (S, B, 2L+1, 16)
         conditioning_vector.append(freq)
@@ -118,7 +116,7 @@ class FreqSrcPosCondAutoEncoder(Net):
         Args:
             hrtf_mag:     (S ,B_m, 2, L)
             itd:          (S, B_m)
-            freq:         (L)
+            freq:         (S, L)
             mes_pos_cart: (S, B_m, 3)
             tar_pos_cart: (S, B_t, 3)
             dataset_name: str
@@ -166,7 +164,7 @@ class FreqSrcPosCondAutoEncoder(Net):
             'db_name':      list of str
             'sub_idx':      (S) torch.int64
 
-        :return: out: 
+        :return: out:
             - HRTF produce as a (B, 4L, S) complex tensor
                 4L ... [l_re, l_im, r_re, r_im]
             - HRTF's magnitude as a (B,2,L,S) float tensor

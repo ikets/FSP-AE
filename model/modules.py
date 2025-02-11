@@ -71,37 +71,37 @@ class ResLinearBlock(nn.Module):
             self.layers1 = nn.Sequential(
                 nn.Linear(channel, channel),
                 nn.LayerNorm(channel),
-                nn.ReLU(),
+                nn.Mish(),
                 nn.Dropout(droprate),
                 nn.Linear(channel, channel)
             )
             self.layers2 = nn.Sequential(
                 nn.LayerNorm(channel),
-                nn.ReLU(),
+                nn.Mish(),
                 nn.Dropout(droprate)
             )
         elif norm == 'bn':
             self.layers1 = nn.Sequential(
                 nn.Linear(channel, channel),
                 nn.BatchNorm1d(bn_c),
-                nn.ReLU(),
+                nn.Mish(),
                 nn.Dropout(droprate),
                 nn.Linear(channel, channel)
             )
             self.layers2 = nn.Sequential(
                 nn.BatchNorm1d(bn_c),
-                nn.ReLU(),
+                nn.Mish(),
                 nn.Dropout(droprate)
             )
         elif norm is None:
             self.layers1 = nn.Sequential(
                 nn.Linear(channel, channel),
-                nn.ReLU(),
+                nn.Mish(),
                 nn.Dropout(droprate),
                 nn.Linear(channel, channel)
             )
             self.layers2 = nn.Sequential(
-                nn.ReLU(),
+                nn.Mish(),
                 nn.Dropout(droprate)
             )
 
@@ -122,14 +122,14 @@ class HyperLinear(nn.Module):
         modules = [
             nn.Linear(input_size, ch_hidden),
             nn.LayerNorm(ch_hidden),
-            nn.ReLU(),
+            nn.Mish(),
             nn.Dropout(droprate)]
         if not use_res:
             for _ in range(num_hidden):
                 modules.extend([
                     nn.Linear(ch_hidden, ch_hidden),
                     nn.LayerNorm(ch_hidden),
-                    nn.ReLU(),
+                    nn.Mish(),
                     nn.Dropout(droprate)
                 ])
         else:
@@ -144,14 +144,14 @@ class HyperLinear(nn.Module):
         modules = [
             nn.Linear(input_size, ch_hidden),
             nn.LayerNorm(ch_hidden),
-            nn.ReLU(),
+            nn.Mish(),
             nn.Dropout(droprate)]
         if not use_res:
             for _ in range(num_hidden):
                 modules.extend([
                     nn.Linear(ch_hidden, ch_hidden),
                     nn.LayerNorm(ch_hidden),
-                    nn.ReLU(),
+                    nn.Mish(),
                     nn.Dropout(droprate)
                 ])
         else:
@@ -186,7 +186,7 @@ class HyperLinearBlock(nn.Module):
         if post_prcs:
             self.layers_post = nn.Sequential(
                 nn.LayerNorm(out_dim),
-                nn.ReLU(),
+                nn.Mish(),
                 nn.Dropout(droprate)
             )
         else:
@@ -195,10 +195,10 @@ class HyperLinearBlock(nn.Module):
             )
 
     def forward(self, input):
-        x, z = input
+        # x, z = input
         # x = input["x"] # (B, ch_in)
         # z = input["z"]  # (B, input_size=3)
-        y, z = self.hyperlinear(x, z)  # x,z]
+        y, z = self.hyperlinear(input)  # x,z]
         y = self.layers_post(y)
 
         return (y, z)
