@@ -1,2 +1,5 @@
 data/
-.python-version
+.python-*
+notecook/boe.ipynb
+boe
+__pycache__
