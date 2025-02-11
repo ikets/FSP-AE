@@ -1,5 +1,6 @@
-data/
+data/*/*
 .python-*
+config/old
 notebook/boe.ipynb
 boe
 __pycache__
