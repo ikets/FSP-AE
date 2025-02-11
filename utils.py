@@ -1,4 +1,12 @@
+from attrdict import AttrDict
 import torch as th
+import yaml
+
+
+def load_yaml(yaml_path):
+    with open(yaml_path) as f:
+        config = yaml.safe_load(f)
+    return AttrDict(config)
 
 
 def sph2cart(phi, theta, r):

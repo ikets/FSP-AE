@@ -67,13 +67,13 @@ class FreqSrcPosCondAutoEncoder(Net):
     def set_stats(self, mean, std, dataset_name, data_type="hrtf_mag"):
         if dataset_name not in self.stats:
             self.stats[dataset_name] = {}
-        self.stats[dataset_name][data_type] = [mean, std]
+        self.stats[dataset_name][data_type] = {"mean": mean, "std": std}
 
-    def standardize(self, input, dataset_name, data_type="hrtf_mag", reverse=False):
+    def standardize(self, input, dataset_name, data_type="hrtf_mag", reverse=False, device="cuda"):
         if not reverse:
-            output = (input - self.stats[dataset_name][data_type]["mean"]) / self.stats[dataset_name][data_type]["std"]
+            output = (input - self.stats[dataset_name][data_type]["mean"].to(device)) / self.stats[dataset_name][data_type]["std"].to(device)
         else:
-            output = input * self.stats[dataset_name][data_type]["std"] + self.stats[dataset_name][data_type]["mean"]
+            output = input * self.stats[dataset_name][data_type]["std"].to(device) + self.stats[dataset_name][data_type]["mean"].to(device)
         return output
 
     def get_conditioning_vector(self, pos_cart, freq, use_num_pos=False, device="cuda"):
@@ -130,8 +130,8 @@ class FreqSrcPosCondAutoEncoder(Net):
         assert hrtf_mag.shape[1] == itd.shape[1] == B_m
         B_t = tar_pos_cart.shape[1]
 
-        hrtf_mag = self.standardize(hrtf_mag, dataset_name, "hrtf_mag")  # (S, B_m, 2, L)
-        itd = self.standardize(itd, dataset_name, "itd").unsqueeze(-1)  # (S, B_m, 1)
+        hrtf_mag = self.standardize(hrtf_mag, dataset_name, "hrtf_mag", device=device)  # (S, B_m, 2, L)
+        itd = self.standardize(itd, dataset_name, "itd", device=device).unsqueeze(-1)  # (S, B_m, 1)
 
         hrtf_mag = th.cat((hrtf_mag[:, :, 0, :], hrtf_mag[:, :, 1, :]), dim=-1)  # (S, B_m, 2L)
         encoder_input = th.cat((hrtf_mag, itd), dim=-1).unsqueeze(-1)  # (S, B_m, 2L+1, 1)
@@ -147,8 +147,8 @@ class FreqSrcPosCondAutoEncoder(Net):
         hrtf_mag_pred = th.cat((decoder_output[:, :, None, :L, 0], decoder_output[:, :, None, L:2 * L, 0]), dim=2)  # (S, B_t, 2, L)
         itd_pred = decoder_output[:, :, -1, 0]  # (S, B_t)
 
-        hrtf_mag_pred = self.standardize(hrtf_mag_pred, dataset_name, "hrtf_mag", reverse=True)
-        itd_pred = self.standardize(itd_pred, dataset_name, "itd", reverse=True)
+        hrtf_mag_pred = self.standardize(hrtf_mag_pred, dataset_name, "hrtf_mag", reverse=True, device=device)
+        itd_pred = self.standardize(itd_pred, dataset_name, "itd", reverse=True, device=device)
 
         return hrtf_mag_pred, itd_pred
 

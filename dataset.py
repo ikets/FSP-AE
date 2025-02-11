@@ -26,6 +26,15 @@ class HRTFDataset(th.utils.data.Dataset):
 
     def __getitem__(self, index):
         sofa_path = self.sofa_paths[index // len(self.num_mes_pos_list)]
+        item = self.get_data(sofa_path)
+        num_mes_pos = self.num_mes_pos_list[index % len(self.num_mes_pos_list)]
+
+        return (item, num_mes_pos)
+
+    def __len__(self):
+        return len(self.sofa_paths) * len(self.num_mes_pos_list)
+
+    def get_data(self, sofa_path):
         if sofa_path in self.data:
             item = self.data[sofa_path]
         else:
@@ -39,12 +48,7 @@ class HRTFDataset(th.utils.data.Dataset):
                 raise NotImplementedError
             item = self.sofa2data(sofa_path, False, dataset_name, front_id)
             self.data[sofa_path] = item
-        num_mes_pos = self.num_mes_pos_list[index % len(self.num_mes_pos_list)]
-
-        return (item, num_mes_pos)
-
-    def __len__(self):
-        return len(self.sofa_paths) * len(self.num_mes_pos_list)
+        return item
 
     def hrir2itd(self, hrir, thrsh_ms=1000, lowpass=True, upsample_via_cpu=True, conv_cpu=True):
         '''
