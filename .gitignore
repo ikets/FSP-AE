@@ -3,3 +3,4 @@ data/
 notebook/boe.ipynb
 boe
 __pycache__
+.vscode
