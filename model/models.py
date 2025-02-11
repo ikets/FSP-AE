@@ -4,9 +4,9 @@ import torch.nn as nn
 from .modules import Net, HyperLinearBlock, FourierFeatureMapping
 
 
-class FreqSrcPosCondAutoEncoder(Net):
-    def __init__(self, config, model_name='hrtf_upsample_network', use_cuda=True):
-        super().__init__(model_name, use_cuda)
+class FreqSrcPosCondAutoEncoder(nn.Module):
+    def __init__(self, config):
+        super().__init__()
         self.config = config
 
         # Stats for standardization

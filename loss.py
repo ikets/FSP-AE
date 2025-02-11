@@ -3,10 +3,11 @@ import torchaudio as ta
 
 
 class LSD(th.nn.Module):
-    def __init__(self):
+    def __init__(self, reduction="mean"):
         super().__init__()
+        self.reduction = reduction
 
-    def forward(self, pred, target, dim=2, data_type="hrtf_mag", reduction="mean"):
+    def forward(self, pred, target, dim=2, data_type="hrtf_mag"):
         '''
         Args:
             pred:   (B,2,L,S) complex (or float) tensor
@@ -24,11 +25,11 @@ class LSD(th.nn.Module):
             raise NotImplementedError
 
         lsd = th.sqrt(th.mean((pred - target).pow(2), dim=dim))
-        if reduction == "mean":
+        if self.reduction == "mean":
             lsd = th.mean(lsd)
-        elif reduction == "sum":
+        elif self.reduction == "sum":
             lsd = th.sum(lsd)
-        elif reduction in ["none", None]:
+        elif self.reduction in ["none", None]:
             pass
         else:
             raise ValueError
