@@ -4,7 +4,7 @@ import torchaudio as ta
 import numpy as np
 import sofa
 
-from utils import sph2cart
+from utils import sph2cart, hrir2itd
 
 
 class HRTFDataset(th.utils.data.Dataset):
@@ -49,43 +49,6 @@ class HRTFDataset(th.utils.data.Dataset):
             item = self.sofa2data(sofa_path, False, dataset_name, front_id)
             self.data[sofa_path] = item
         return item
-
-    def hrir2itd(self, hrir, thrsh_ms=1000, lowpass=True, upsample_via_cpu=True, conv_cpu=True):
-        '''
-        args:
-            hrir: (S, B, 2, L') tensor
-            thrsh_ms: threshold [ms]. (computed ITD is forced to be in [-thrsh_ms, +thrsh_ms] )
-            lowpass: bool. If True, Low-pass filter is filtered to hrir.
-        returns:
-            ITD: (S, B) tensor, interaural time difference [s] (-:src@left, +:src@right)
-        '''
-
-        if lowpass:
-            hrir = ta.functional.lowpass_biquad(waveform=hrir, sample_rate=self.config.max_freq * 2, cutoff_freq=1600)
-        else:
-            pass
-        if upsample_via_cpu:
-            hrir = hrir.cpu()
-        upsampler = ta.transforms.Resample(self.config.max_freq * 2, self.config.fs_up)
-        hrir_us = upsampler(hrir.to(th.float32).contiguous())
-        if upsample_via_cpu and not conv_cpu:
-            hrir_us = hrir_us.cuda()
-        S, B, _, L = hrir_us.shape
-        thrsh_idx = round(self.config.fs_up / thrsh_ms)
-
-        hrir_l = hrir_us[:, :, 0, :]
-        hrir_r = hrir_us[:, :, 1, :]
-        hrir_l_pad = F.pad(hrir_l, (L, L))  # torch.Size([S, 440, 384])
-        hrir_l_pad_in = hrir_l_pad.reshape(1, S * B, -1)
-        hrir_r_wt = hrir_r.reshape(S * B, 1, -1)
-        crs_cor = F.conv1d(hrir_l_pad_in, hrir_r_wt, groups=S * B)
-        crs_cor = crs_cor.reshape(S, B, -1)
-        idx_beg = L - thrsh_idx
-        idx_end = L + thrsh_idx + 1
-        idx_max = th.argmax(crs_cor[:, :, idx_beg:idx_end], dim=-1) - thrsh_idx
-        itd = idx_max / self.config.fs_up
-
-        return itd
 
     def sofa2data(self, sofa_path, multiple_green_func=False, dataset_name="hutubs", front_id=202):
         sofa_data = sofa.Database.open(sofa_path)
@@ -134,7 +97,7 @@ class HRTFDataset(th.utils.data.Dataset):
 
         hrtf_mag_p = self.mag2db(th.abs(hrtf_p))
 
-        itd = self.hrir2itd(hrir_tar.unsqueeze(0)).squeeze(0)  # (B, )
+        itd = hrir2itd(hrir_tar.unsqueeze(0), fs=self.config.max_freq * 2, fs_up=self.config.fs_up).squeeze(0)  # (B, )
 
         returns = {
             "srcpos_sph": srcpos_sph,      # (B, 3)

@@ -16,6 +16,7 @@ from utils import load_yaml
 def load_state(path, model, optimizer=None, scheduler=None):
     state_dicts = th.load(path)
     model.load_state_dict(state_dicts["model"])
+    model.stats = state_dicts["stats"]
     if optimizer is not None:
         optimizer.load_state_dict(state_dicts["optimizer"])
     if scheduler is not None:
@@ -29,6 +30,7 @@ def load_state(path, model, optimizer=None, scheduler=None):
 def save_state(path, model, optimizer=None, scheduler=None, epoch=0, best_valid_loss=1e10):
     states = {
         "model": model.state_dict(),
+        "stats": model.stats,
         "optimizer": optimizer.state_dict() if optimizer is not None else None,
         "scheduler": scheduler.state_dict() if scheduler is not None else None,
         "epoch": epoch,

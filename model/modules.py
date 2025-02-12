@@ -2,66 +2,8 @@ import math
 import numpy as np
 import torch as th
 import torch.nn as nn
-# import torch.nn.functional as F
+
 from torch.distributions.multivariate_normal import MultivariateNormal
-
-
-class Net(th.nn.Module):
-    def __init__(self, model_name="network", use_cuda=True):
-        super().__init__()
-        self.use_cuda = use_cuda and th.cuda.is_available()
-        self.model_name = model_name
-
-    def save(self, model_dir, suffix=""):
-        '''
-        save the network to model_dir/model_name.suffix.net
-        :param model_dir: directory to save the model to
-        :param suffix: suffix to append after model name
-        '''
-        if self.use_cuda:
-            self.cpu()
-
-        if suffix == "":
-            fname = f"{model_dir}/{self.model_name}.net"
-        else:
-            fname = f"{model_dir}/{self.model_name}.{suffix}.net"
-
-        th.save(self.state_dict(), fname)
-        if self.use_cuda:
-            self.cuda()
-
-    def load_from_file(self, model_file):
-        '''
-        load network parameters from model_file
-        :param model_file: file containing the model parameters
-        '''
-        if self.use_cuda:
-            self.cpu()
-
-        states = th.load(model_file)
-        self.load_state_dict(states)
-
-        if self.use_cuda:
-            self.cuda()
-        print(f"Loaded: {model_file}")
-
-    def load(self, model_dir, suffix=""):
-        '''
-        load network parameters from model_dir/model_name.suffix.net
-        :param model_dir: directory to load the model from
-        :param suffix: suffix to append after model name
-        '''
-        if suffix == "":
-            fname = f"{model_dir}/{self.model_name}.net"
-        else:
-            fname = f"{model_dir}/{self.model_name}.{suffix}.net"
-        self.load_from_file(fname)
-
-    def num_trainable_parameters(self):
-        '''
-        :return: the number of trainable parameters in the model
-        '''
-        return sum(p.numel() for p in self.parameters() if p.requires_grad)
 
 
 class ResLinearBlock(nn.Module):
