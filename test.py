@@ -76,8 +76,7 @@ def test(args):
 
         for plane_parallel_axis in plane_parallel_axis_list:
             suffix = f"{dataset_name}_sub-{sub_id}_plane-parallel-{['x', 'y', 'z'][plane_parallel_axis]}"
-            target_values = radius * th.tensor([-0.5, 0.0, 0.5])
-            pos_cart_mes, idx_mes = sample_plane_parallel(pos_cart_tar[0], plane_parallel_axis, target_values)
+            pos_cart_mes, idx_mes = sample_plane_parallel(pos_cart_tar[0], plane_parallel_axis, radius * th.tensor([-0.5, 0.0, 0.5]))
 
             pos_cart_mes, hrtf_mag_mes, itd_mes = pos_cart_mes.unsqueeze(0), hrtf_mag[:, idx_mes, :, :], itd[:, idx_mes]
             infer_and_save(model, hrtf_mag_mes, itd_mes, freq, pos_cart_mes, pos_cart_tar, dataset_name, device, suffix, exp_dir, config)
