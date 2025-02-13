@@ -95,6 +95,7 @@ def train(args):
     random.seed(args.seed)
     np.random.seed(args.seed)
     th.manual_seed(args.seed)
+    th.cuda.manual_seed(args.seed)
 
     exp_dir = f"exp/{os.path.basename(args.config_path).split('.')[0]}"
     if os.path.isdir(exp_dir) and not args.forced:

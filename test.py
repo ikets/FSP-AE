@@ -14,7 +14,7 @@ def load_state(path, model):
     state_dicts = th.load(path)
     model.load_state_dict(state_dicts["model"])
     model.stats = state_dicts["stats"]
-    print(f"Loaded checkpoint {path} .")
+    print(f"Loaded checkpoint {path}.")
     return model
 
 
