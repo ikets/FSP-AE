@@ -317,9 +317,43 @@ def plot_fig8(database_info, hrtf_mag_dict_gt):
         print(f"Saved to {save_path}.")
 
 
+def plot_lsd_plane(hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
+    suffix_list = ["plane-z", "plane-yz", "plane-xyz", "plane-parallel-z"]
+    xtick_list = ["plane-{z}", "plane-{yz}", "plane-{xyz}", "plane-parallel-z"]
+    hrtf_mag_gt = hrtf_mag_dict_gt[database_name]
+
+    w = 1
+    width = w * 0.6
+    num_method = 4
+    dh = width / num_method
+    patterns = ["", ".", "/", "\\"]
+    plt.figure(figsize=(12, 5))
+    x_list = th.arange(0, len(suffix_list)).to(float) * w
+    plt.xticks(x_list, xtick_list)
+
+    values = {}
+    for m, method in enumerate(["Proposed", "SWFE", "RSHE", "SPCA"]):
+        values[method] = {"mean": [], "std": []}
+        for suffix in suffix_list:
+            hrtf_mag_pred = hrtf_mag_dict[database_name][suffix][method]
+            lsd = th.sqrt(th.mean((hrtf_mag_gt - hrtf_mag_pred)**2, dim=3))
+            values[method]["mean"].append(th.mean(lsd))
+            values[method]["std"].append(th.std(lsd))
+        plt.bar(x_list, values[method]["mean"], yerr=values[method]["std"], width=dh, label=method, zorder=2, hatch=patterns[m], ec="0.3", lw=1, capsize=6 / 0.2 * dh, ecolor="0")
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    plt.savefig(save_path, dpi=400, bbox_inches="tight")
+    print(f"Saved to {save_path}.")
+
+
+def plot_fig9(database_info, hrtf_mag_dict, hrtf_mag_dict_gt):
+    for database_name in database_info:
+        save_path = f"figure/fig9/{database_name}.pdf"
+        plot_lsd_plane(hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path)
+
+
 def plot_fig10(database_info, itd_dict, itd_dict_gt):
     for database_name in database_info:
-        save_path = f"figure/fig10/ae_itd_{database_name}.pdf"
+        save_path = f"figure/fig10/{database_name}.pdf"
         plot_ae_itd_uniform(database_info, itd_dict, itd_dict_gt, database_name, save_path)
 
 
@@ -410,9 +444,10 @@ def plot_all():
     itd_dict_pred = th.load("boe/itd_dict_pred.pt")
 
     # plot_fig6(database_info, hrtf_mag_dict_pred, hrtf_mag_dict_gt)
-    plot_fig7(database_info, hrtf_mag_dict_pred, hrtf_mag_dict_gt)
+    # plot_fig7(database_info, hrtf_mag_dict_pred, hrtf_mag_dict_gt)
     # plot_fig8(database_info, hrtf_mag_dict_gt)
-    # plot_fig10(database_info, itd_dict_pred, itd_dict_gt)
+    plot_fig9(database_info, hrtf_mag_dict_pred, hrtf_mag_dict_gt)
+    plot_fig10(database_info, itd_dict_pred, itd_dict_gt)
     # plot_fig11(itd_dict_gt, config)
 
 
