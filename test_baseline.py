@@ -82,7 +82,7 @@ def infer_and_save(hrtf_mag, hrtf, itd, idx_mes, freq, pos_cart_tar, pos_sph_tar
         th.save(hrtf_mag_spca[:, :, :, s], f"{exp_dir}/spca/hrtf_mag/hrtf_mag_{suffix_sub}")
         th.save(itd_wdwt[:, s], f"{exp_dir}/woodworth/itd/itd_{suffix_sub}")
 
-        print(f"Saved in {exp_dir}/<method>/<data_type>/<data_type>_{suffix_sub}.")
+        print(f"Saved in {exp_dir}/<method>/<data_kind>/<data_kind>_{suffix_sub}.")
 
 
 def test(args):
@@ -113,16 +113,16 @@ def test(args):
     for sofa_path in test_dataset.sofa_paths:
         item = test_dataset.get_data(sofa_path)
         database_name = item["dataset_name"]
-        for data_type in ["hrtf_mag", "hrtf", "itd"]:
-            items[database_name][data_type].append(item[data_type].unsqueeze(-1))
+        for data_kind in ["hrtf_mag", "hrtf", "itd"]:
+            items[database_name][data_kind].append(item[data_kind].unsqueeze(-1))
         for key in ["frequency", "srcpos_sph", "srcpos_cart"]:
             if key not in items_cat[database_name]:
                 items_cat[database_name][key] = item[key]
 
     for database_name in database_names:
-        for data_type in ["hrtf_mag", "hrtf", "itd"]:
-            item_cat = th.cat(items[database_name][data_type], dim=-1)  # (B_t, 2, L, S) or (B_t, S)
-            items_cat[database_name][data_type] = item_cat
+        for data_kind in ["hrtf_mag", "hrtf", "itd"]:
+            item_cat = th.cat(items[database_name][data_kind], dim=-1)  # (B_t, 2, L, S) or (B_t, S)
+            items_cat[database_name][data_kind] = item_cat
 
     for database_name in database_names:
         hrtf, hrtf_mag, itd = items_cat[database_name]["hrtf"], items_cat[database_name]["hrtf_mag"], items_cat[database_name]["itd"]

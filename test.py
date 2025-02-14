@@ -21,12 +21,12 @@ def load_state(path, model):
 def infer_and_save(model, hrtf_mag_mes, itd_mes, freq, pos_cart_mes, pos_cart_tar, dataset_name, device, suffix, exp_dir, config):
     with th.no_grad():
         hrtf_mag_pred, itd_pred = model(hrtf_mag_mes, itd_mes, freq, pos_cart_mes, pos_cart_tar, dataset_name, device)
-        hrir_pred = get_hrir_with_itd(hrtf_mag_pred, itd_pred, input_type="hrtf_mag", fs=config.data.max_freq * 2, fs_up=config.data.fs_up)
+        hrir_pred = get_hrir_with_itd(hrtf_mag_pred, itd_pred, input_kind="hrtf_mag", fs=config.data.max_freq * 2, fs_up=config.data.fs_up)
 
-    th.save(hrtf_mag_pred, f"{exp_dir}/hrtf_mag/hrtf_mag_{suffix}.pt")
-    th.save(itd_pred, f"{exp_dir}/itd/itd_{suffix}.pt")
-    th.save(hrir_pred, f"{exp_dir}/hrir/hrir_{suffix}.pt")
-    print(f"Saved in {exp_dir}/<data_type>/<data_type>_{suffix}.pt. (`data_type`: hrtf_mag, itd, hrir)")
+    th.save(hrtf_mag_pred[0], f"{exp_dir}/hrtf_mag/hrtf_mag_{suffix}.pt")
+    th.save(itd_pred[0], f"{exp_dir}/itd/itd_{suffix}.pt")
+    th.save(hrir_pred[0], f"{exp_dir}/hrir/hrir_{suffix}.pt")
+    print(f"Saved in {exp_dir}/<data_kind>/<data_kind>_{suffix}.pt. (`data_kind`: hrtf_mag, itd, hrir)")
 
 
 def test(args):
@@ -49,7 +49,7 @@ def test(args):
     plane_parallel_axis_list = [2]
 
     for data, _ in tqdm(test_loader):
-        hrtf_mag, itd, freq, pos_cart_tar, radius, dataset_name, sofa_path = data["hrtf_mag"], data["itd"], data["frequency"], data["srcpos_cart"], data["srcpos_sph"][0, 0], data["dataset_name"][0], data["sofa_path"][0]
+        hrtf_mag, itd, freq, pos_cart_tar, radius, dataset_name, sofa_path = data["hrtf_mag"], data["itd"], data["frequency"], data["srcpos_cart"], data["srcpos_sph"][0, 0, 0], data["dataset_name"][0], data["sofa_path"][0]
 
         if dataset_name == "hutubs":
             sub_id = os.path.basename(sofa_path).split("_")[0].replace("pp", "")
@@ -62,6 +62,7 @@ def test(args):
             pos_cart_mes, idx_mes = sample_uniform(pos_cart_tar[0], uniform_num_mes_pos, radius, dataset_name)
 
             pos_cart_mes, hrtf_mag_mes, itd_mes = pos_cart_mes.unsqueeze(0), hrtf_mag[:, idx_mes, :, :], itd[:, idx_mes]
+            # print(f"{pos_cart_mes.shape=} {hrtf_mag_mes.shape=}")
             infer_and_save(model, hrtf_mag_mes, itd_mes, freq, pos_cart_mes, pos_cart_tar, dataset_name, device, suffix, exp_dir, config)
 
         for plane_axes in plane_axes_list:

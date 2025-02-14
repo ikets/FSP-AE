@@ -62,7 +62,7 @@ def hrir2itd(hrir, thrsh_ms=1000, lowpass=True, upsample_via_cpu=True, conv_cpu=
     return itd
 
 
-def get_hrir_with_itd(input=None, itd=None, input_type="hrtf_mag", fs=32000.0, fs_up=384000.0):
+def get_hrir_with_itd(input=None, itd=None, input_kind="hrtf_mag", fs=32000.0, fs_up=384000.0):
     '''
     Args:
         input: one of
@@ -74,12 +74,12 @@ def get_hrir_with_itd(input=None, itd=None, input_type="hrtf_mag", fs=32000.0, f
         hrir with itd:  (S, B, 2, 2L)
     '''
 
-    if input_type == "hrir":
+    if input_kind == "hrir":
         hrir_ori = input
-    elif input_type == "hrtf_mag":
+    elif input_kind == "hrtf_mag":
         hrtf_mag_lin = 10**(input / 20)
         _, hrir_ori = minphase_recon(hrtf_mag_lin.to(th.complex64), negative_freq=False)
-    elif input_type == "hrtf":
+    elif input_kind == "hrtf":
         _, hrir_ori = minphase_recon(input, negative_freq=False)
     itd_ori = hrir2itd(hrir=hrir_ori, fs=fs, fs_up=fs_up).to(input.device)
     hrir_out = assign_itd(hrir_ori=hrir_ori, itd_ori=itd_ori, itd_des=itd, fs=fs)

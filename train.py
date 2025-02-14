@@ -49,14 +49,14 @@ def calculate_and_set_stats(model, train_dataset):
     for sofa_path in train_dataset.sofa_paths:
         item = train_dataset.get_data(sofa_path)
         database_name = item["dataset_name"]
-        for data_type in ["hrtf_mag", "itd"]:
-            items[database_name][data_type].append(item[data_type].unsqueeze(0))
+        for data_kind in ["hrtf_mag", "itd"]:
+            items[database_name][data_kind].append(item[data_kind].unsqueeze(0))
 
     for database_name in database_names:
-        for data_type in ["hrtf_mag", "itd"]:
-            items_cat = th.cat(items[database_name][data_type], dim=0)
+        for data_kind in ["hrtf_mag", "itd"]:
+            items_cat = th.cat(items[database_name][data_kind], dim=0)
             mean, std = th.mean(items_cat), th.std(items_cat)
-            model.set_stats(mean, std, database_name, data_type)
+            model.set_stats(mean, std, database_name, data_kind)
 
 
 @th.no_grad()

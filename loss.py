@@ -7,7 +7,7 @@ class LSD(th.nn.Module):
         super().__init__()
         self.reduction = reduction
 
-    def forward(self, pred, target, dim=2, data_type="hrtf_mag"):
+    def forward(self, pred, target, dim=2, data_kind="hrtf_mag"):
         '''
         Args:
             pred:   (B,2,L,S) complex (or float) tensor
@@ -15,11 +15,11 @@ class LSD(th.nn.Module):
         Returns:
             a scalar or (B,2,S) tensor
         '''
-        if data_type == "hrtf":
+        if data_kind == "hrtf":
             mag2db = ta.transforms.AmplitudeToDB(stype="magnitude")
             pred = mag2db(th.abs(pred))
             target = mag2db(th.abs(target))
-        elif data_type == "hrtf_mag":
+        elif data_kind == "hrtf_mag":
             pass
         else:
             raise NotImplementedError

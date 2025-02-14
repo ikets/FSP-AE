@@ -33,6 +33,7 @@ def sample_uniform(pos_cart, num_mes_pos, radius=1.47, dataset_name="hutubs"):
         pos_cart_sampled: subset of pos_cart (B_mes, 3).
         idx: list of sampled index, length: (B_mes)
     '''
+    # print(f"{pos_cart.shape=} {num_mes_pos=} {radius=}")
     valid_num_mes_pos_list = [4, 6] + [(t + 1) ** 2 for t in range(2, 19)]
     assert num_mes_pos in valid_num_mes_pos_list, f"`num_mes_pos` must be one of {valid_num_mes_pos_list}."
     if num_mes_pos in [4, 6]:
@@ -41,7 +42,7 @@ def sample_uniform(pos_cart, num_mes_pos, radius=1.47, dataset_name="hutubs"):
         if dataset_name == "riec":
             row = grid[:, 2] >= -0.5
             grid = grid[row]
-        grid = grid * radius
+        grid = grid * float(radius)
 
         kdt = scipy.spatial.KDTree(pos_cart.cpu())
         dist, idx = kdt.query(grid)  # dist, index

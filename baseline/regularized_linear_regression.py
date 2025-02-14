@@ -53,15 +53,15 @@ def spherical_hn(n, k, z):
         raise ValueError()
 
 
-def reg_matrix(matrix_type="duraiswami", n_vec=None, order=None):
-    if matrix_type == "duraiswami":
+def reg_matrix(matrix_kind="duraiswami", n_vec=None, order=None):
+    if matrix_kind == "duraiswami":
         assert n_vec is not None
         return th.diag(1 + th.tensor(n_vec) * (th.tensor(n_vec) + 1))
-    elif matrix_type == "tikhonov":
+    elif matrix_kind == "tikhonov":
         assert order is not None
         return th.eye(order)
     else:
-        raise ValueError("matrix_type must be 'duraiswami' or 'tikhonov'.")
+        raise ValueError("matrix_kind must be 'duraiswami' or 'tikhonov'.")
 
 
 def sph_wavefunc_expansion(hrtf, freq, mes_pos_sph, tar_pos_sph, reg_param=1e-6, coeff=2.0, sound_speed=343.18, r_shoulder=0.45):
@@ -102,7 +102,7 @@ def sph_wavefunc_expansion(hrtf, freq, mes_pos_sph, tar_pos_sph, reg_param=1e-6,
     return hrtf_pred
 
 
-def real_sph_harm_expansion(input, mes_pos_sph, tar_pos_sph, input_type="hrtf_mag", reg_param=1e-3, coeff=2.0):
+def real_sph_harm_expansion(input, mes_pos_sph, tar_pos_sph, input_kind="hrtf_mag", reg_param=1e-3, coeff=2.0):
     '''
     Args:
         input: one of
@@ -128,11 +128,11 @@ def real_sph_harm_expansion(input, mes_pos_sph, tar_pos_sph, input_type="hrtf_ma
     sph_harm_tar = th.real(sph_harm_tar) * (m_vec >= 0)[None, :] - th.imag(sph_harm_tar) * (m_vec < 0)[None, :]
     sph_harm_tar = sph_harm_tar.to(input.dtype)
 
-    if input_type == "hrtf_mag":
+    if input_kind == "hrtf_mag":
         phi_trans_h = th.matmul(sph_harm_mes.permute(1, 0)[None, None, None], input.permute(1, 2, 3, 0).unsqueeze(-1))  # (...,(N+1)^2, B_m) * (2, L, S, B_m, 1) -> (2, L, S, (N+1)^2, 1)
         c = th.linalg.solve((phi_trans_phi + reg_param * gamma)[None, None, None], phi_trans_h)  # (2, L, S, (N+1)^2, 1)
         output = th.matmul(sph_harm_tar[None, None, None], c).reshape(c.shape[0], c.shape[1], c.shape[2], -1).permute(3, 0, 1, 2)
-    elif input_type == "itd":
+    elif input_kind == "itd":
         phi_trans_h = th.matmul(sph_harm_mes.permute(1, 0)[None], input.permute(1, 0).unsqueeze(-1))  # (...,(N+1)^2, B_m) * (S, B_m, 1) -> (S, (N+1)^2, 1)
         c = th.linalg.solve((phi_trans_phi + reg_param * gamma)[None], phi_trans_h)  # (S, (N+1)^2, 1)
         output = th.matmul(sph_harm_tar[None], c).reshape(c.shape[0], -1).permute(1, 0)
@@ -174,9 +174,9 @@ def spatial_principal_component_analysis(hrtf_mag, tar_pos_cart, mes_idx, spc_ma
     _, tar_idx_flip = kdt.query(tar_pos_cart)
     spc_mat_trunc_mes_flip = spc_mat_trunc_tar[mes_idx_flip, :]  # (B_m, N)
     spc_mat_trunc_tar_flip = spc_mat_trunc_tar[tar_idx_flip, :]  # (B_t, N)
+    phi_trans_phi = th.matmul(spc_mat_trunc_mes_flip.permute(1, 0), spc_mat_trunc_mes_flip)  # (B_m, B_m)
 
     input_r_cen = hrtf_mag[:, 1, :, :] - mean_vec[mes_idx_flip, None, None]  # (B_m, L, S)
-
     phi_trans_h = th.matmul(spc_mat_trunc_mes_flip.permute(1, 0)[None, None], input_r_cen.permute(1, 2, 0).unsqueeze(-1))  # (..., N, B_m) * (L, S, B_m,1) -> (L, S, N, 1)
     c = th.linalg.solve((phi_trans_phi + reg_param * gamma)[None, None], phi_trans_h)  # (L, S, N, 1)
     output_r = th.matmul(spc_mat_trunc_tar_flip[None, None], c).reshape(c.shape[0], c.shape[1], -1).permute(2, 0, 1) + mean_vec[tar_idx_flip, None, None]  # (L, S, B_t, 1) -> (L, S, B_t) -> (B_t, L, S)
