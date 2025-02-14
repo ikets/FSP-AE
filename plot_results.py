@@ -8,6 +8,25 @@ import yaml
 
 from dataset import HRTFDataset
 from sampling import sample_uniform
+from utils import hrtf2hrir, hrir2itd
+
+
+def get_suffix_list():
+    uniform_num_mes_pos_list = [4, 6] + [(t + 1) ** 2 for t in range(2, 13)]
+    plane_axes_list = [(2,), (1, 2), (0, 1, 2)]
+    plane_parallel_axis_list = [2]
+
+    suffix_list = []
+    for uniform_num_mes_pos in uniform_num_mes_pos_list:
+        suffix_list.append(f"uniform-{uniform_num_mes_pos}")
+    for plane_axes in plane_axes_list:
+        plane_axes_str = ""
+        for axis in plane_axes:
+            plane_axes_str += f"{['x', 'y', 'z'][axis]}"
+        suffix_list.append(f"plane-{plane_axes_str}")
+    for plane_parallel_axis in plane_parallel_axis_list:
+        suffix_list.append(f"plane-parallel-{['x', 'y', 'z'][plane_parallel_axis]}")
+    return suffix_list
 
 
 def concat_pt_files(pt_list):
@@ -46,14 +65,36 @@ def get_hrtf_mag_dict(suffix_list, config):
     return hrtf_mag_dict
 
 
-def plot_lsd_uniform(database_data, hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
+def get_itd_dict(suffix_list, config):
+    itd_dict = {}
+    for database_name in ["hutubs", "riec"]:
+        itd_dict[database_name] = {}
+        for suffix in suffix_list:
+            itd_dict[database_name][suffix] = {}
+            # proposed
+            sub_id_range = config.data[database_name]["sub_id"]["test"]
+            pt_list = get_pt_list("exp/v1/itd/itd", suffix, database_name, sub_id_range)
+            itd_dict[database_name][suffix]["Proposed"] = concat_pt_files(pt_list)
+            # swfe
+            pt_list = get_pt_list("exp_baseline/swfe/hrtf/hrtf", suffix, database_name, sub_id_range)
+            itd_dict[database_name][suffix]["SWFE"] = hrir2itd(hrtf2hrir(concat_pt_files(pt_list)), fs=config.data.max_freq * 2, fs_up=config.data.fs_up)
+            # rshe
+            pt_list = get_pt_list("exp_baseline/rshe/itd/itd", suffix, database_name, sub_id_range)
+            itd_dict[database_name][suffix]["RSHE"] = concat_pt_files(pt_list)
+            # woodworth
+            pt_list = get_pt_list("exp_baseline/woodworth/itd/itd", suffix, database_name, sub_id_range)
+            itd_dict[database_name][suffix]["Woodworth"] = concat_pt_files(pt_list)
+    return itd_dict
+
+
+def plot_lsd_uniform(database_info, hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
     plt.style.use("seaborn-colorblind")
     plt.figure(figsize=(10, 6))
     plt.rcParams["font.size"] = 20
     num_mes_pos_list = [4, 6] + [(t + 1) ** 2 for t in range(2, 13)]
     num_mes_pos_list_actual = []
     for num_mes_pos in num_mes_pos_list:
-        _, idx_mes = sample_uniform(database_data[database_name]["srcpos_cart"], num_mes_pos, radius=database_data[database_name]["srcpos_sph"][0, 0], dataset_name=database_name)
+        _, idx_mes = sample_uniform(database_info[database_name]["srcpos_cart"], num_mes_pos, radius=database_info[database_name]["srcpos_sph"][0, 0], dataset_name=database_name)
         num_mes_pos_list_actual.append(len(idx_mes))
 
     hrtf_mag_gt = hrtf_mag_dict_gt[database_name]
@@ -79,14 +120,14 @@ def plot_lsd_uniform(database_data, hrtf_mag_dict, hrtf_mag_dict_gt, database_na
     print(f"Saved to {save_path}.")
 
 
-def plot_ae_ild_uniform(database_data, hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
+def plot_ae_ild_uniform(database_info, hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
     plt.style.use("seaborn-colorblind")
     plt.figure(figsize=(10, 6))
     plt.rcParams["font.size"] = 20
     num_mes_pos_list = [4, 6] + [(t + 1) ** 2 for t in range(2, 13)]
     num_mes_pos_list_actual = []
     for num_mes_pos in num_mes_pos_list:
-        _, idx_mes = sample_uniform(database_data[database_name]["srcpos_cart"], num_mes_pos, radius=database_data[database_name]["srcpos_sph"][0, 0], dataset_name=database_name)
+        _, idx_mes = sample_uniform(database_info[database_name]["srcpos_cart"], num_mes_pos, radius=database_info[database_name]["srcpos_sph"][0, 0], dataset_name=database_name)
         num_mes_pos_list_actual.append(len(idx_mes))
 
     hrtf_mag_gt = hrtf_mag_dict_gt[database_name]
@@ -118,22 +159,122 @@ def plot_ae_ild_uniform(database_data, hrtf_mag_dict, hrtf_mag_dict_gt, database
     print(f"Saved to {save_path}.")
 
 
-def plot_fig6(database_data, hrtf_mag_dict, hrtf_mag_dict_gt):
-    for database_name in database_data:
+def plot_ae_itd_uniform(database_info, itd_dict, itd_dict_gt, database_name, save_path):
+    plt.style.use("seaborn-colorblind")
+    plt.figure(figsize=(10, 6))
+    plt.rcParams["font.size"] = 20
+    num_mes_pos_list = [4, 6] + [(t + 1) ** 2 for t in range(2, 13)]
+    num_mes_pos_list_actual = []
+    for num_mes_pos in num_mes_pos_list:
+        _, idx_mes = sample_uniform(database_info[database_name]["srcpos_cart"], num_mes_pos, radius=database_info[database_name]["srcpos_sph"][0, 0], dataset_name=database_name)
+        num_mes_pos_list_actual.append(len(idx_mes))
+
+    itd_gt = itd_dict_gt[database_name]
+    values = {}
+    format = {"Proposed": "-o", "SWFE": "-s", "RSHE": "-P", "Woodworth": "-D"}
+    for method in ["Proposed", "SWFE", "RSHE", "Woodworth"]:
+        values[method] = {"mean": [], "std": []}
+        for num_mes_pos in num_mes_pos_list:
+            suffix = f"uniform-{num_mes_pos}"
+            itd_pred = itd_dict[database_name][suffix][method]
+            itd_ae = th.abs(itd_pred - itd_gt)
+
+            values[method]["mean"].append(th.mean(itd_ae))
+            values[method]["std"].append(th.std(itd_ae))
+        plt.errorbar(num_mes_pos_list_actual, np.array(values[method]["mean"]) * 1e6, yerr=np.array(values[method]["std"]) * 1e6, capsize=5, fmt=format[method], label=method, mec="black", ms=10)
+
+    plt.ylabel(r"$\mathrm{AE}^{(\mathrm{ITD})}$" + " ($\mu$s)")
+    plt.xlabel('Number of measurement positions ' + r'$B^{(\mathrm{m})}$')
+    plt.legend(loc='lower center', bbox_to_anchor=(.5, 1.0), ncol=4, frameon=False)
+    plt.grid()
+    plt.xscale("log")
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    plt.savefig(save_path, dpi=400, bbox_inches="tight")
+    print(f"Saved to {save_path}.")
+
+
+def vhlines(ax, linestyle='-', color='gray', zorder=1, alpha=0.8, lw=0.75):
+    ax.axhline(y=np.pi / 2, linestyle=linestyle, color=color, zorder=zorder, alpha=alpha, lw=lw)
+    ax.axvline(x=np.pi / 2, linestyle=linestyle, color=color, zorder=zorder, alpha=alpha, lw=lw)
+    ax.axvline(x=np.pi, linestyle=linestyle, color=color, zorder=zorder, alpha=alpha, lw=lw)
+    ax.axvline(x=np.pi * 3 / 2, linestyle=linestyle, color=color, zorder=zorder, alpha=alpha, lw=lw)
+    ax.text(np.pi / 2, np.pi + 0.05, "Left", ha='center')
+    ax.text(np.pi * 3 / 2, np.pi + 0.05, "Right", ha='center')
+    ax.text(np.pi, np.pi + 0.05, "Back", ha='center')
+
+
+def plotazimzeni(pos, c, cblabel, cmap="viridis", figsize=(10.5, 4.5), emphasize_mes_pos=True, idx_mes_pos=None, vmin=None, vmax=None, save_path=None):
+    '''
+    args:
+        pos: (B,*>3) tensor. (:,1):azimuth, (:,2):zenith
+        c: (B) tensor.
+        fname: str. filename
+        title: str. title.
+        cblabel: str. label of colorbar.
+        cmap: colormap.
+        figsie: (*,*) tuple.
+        dpi: scalar.
+    '''
+    fig, ax = plt.subplots(figsize=figsize)
+    vhlines(ax)
+    if vmin is None:
+        vmin = th.min(c)
+    if vmax is None:
+        vmax = th.max(c)
+    mappable = ax.scatter(pos[:, 1], pos[:, 2], c=c, cmap=cmap, s=60, lw=0.3, ec="gray", zorder=2, vmin=vmin, vmax=vmax)
+    fig.colorbar(mappable=mappable, label=cblabel)
+    if emphasize_mes_pos:
+        ax.scatter(pos[idx_mes_pos, 1], pos[idx_mes_pos, 2], s=120, lw=0.5, c="None", marker="o", ec="k", zorder=1)
+    ds = 0.1
+    xlim = [0 - ds, 2 * np.pi]
+    ylim = [0 - ds, ds + np.pi]
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+    ax.invert_yaxis()
+
+    ax.set_xlabel('Azimuth (deg)')
+    ax.set_ylabel('Zenith (deg)')
+    ax.set_xticks(np.linspace(0, 2 * np.pi, 12 + 1))
+    ax.set_xticklabels([f'{int(azim)}' for azim in np.linspace(0, 2 * 180, 12 + 1)])
+    ax.set_yticks(np.linspace(0, np.pi, 6 + 1))
+    ax.set_yticklabels([f'{int(azim)}' for azim in np.linspace(0, 180, 6 + 1)])
+
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    plt.savefig(save_path, dpi=400, bbox_inches="tight")
+    print(f"Saved to {save_path}.")
+
+
+def plot_fig6(database_info, hrtf_mag_dict, hrtf_mag_dict_gt):
+    for database_name in database_info:
         save_path = f"figure/fig6/lsd_{database_name}.pdf"
-        plot_lsd_uniform(database_data, hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path)
+        plot_lsd_uniform(database_info, hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path)
         save_path = f"figure/fig6/ae_ild_{database_name}.pdf"
-        plot_ae_ild_uniform(database_data, hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path)
+        plot_ae_ild_uniform(database_info, hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path)
 
 
-def plot_fig8(database_data, hrtf_mag_dict_gt):
+def plot_fig7(database_info, hrtf_mag_dict, hrtf_mag_dict_gt):
+    lr = 0
+    database_name = "hutubs"
+    suffix = "uniform-9"
+    _, idx_mes = sample_uniform(database_info[database_name]["srcpos_cart"], 9, radius=database_info[database_name]["srcpos_sph"][0, 0], dataset_name=database_name)
+    hrtf_mag_gt = hrtf_mag_dict_gt[database_name]
+    for method in ["Proposed", "SWFE", "RSHE", "SPCA"]:
+        hrtf_mag_pred = hrtf_mag_dict[database_name][suffix][method]
+        lsd = th.sqrt(th.mean((hrtf_mag_gt - hrtf_mag_pred)**2, dim=-1))  # (S, B, 2)
+        lsd = th.mean(lsd[:, :, lr], dim=0)  # (B)
+
+        save_path = f"figure/fig7/{method}.pdf"
+        plotazimzeni(pos=database_info[database_name]["srcpos_sph"], c=lsd, cblabel="LSD (dB)", idx_mes_pos=idx_mes, vmin=2, vmax=6, save_path=save_path)
+
+
+def plot_fig8(database_info, hrtf_mag_dict_gt):
     lr = 0
     s = 0
     database_name = "hutubs"
     basename = "_hutubs_sub-89_uniform-9.pt"
 
-    pos_cart_tar = database_data[database_name]["srcpos_cart"]
-    zeni = database_data[database_name]["srcpos_sph"][:, 2]
+    pos_cart_tar = database_info[database_name]["srcpos_cart"]
+    zeni = database_info[database_name]["srcpos_sph"][:, 2]
 
     b_list_front = th.arange(pos_cart_tar.shape[0])[th.abs(pos_cart_tar[:, 1]) < 0.02 * (pos_cart_tar[:, 0] > -1e-3)].tolist()
     b_list_back = th.flip(th.arange(pos_cart_tar.shape[0])[th.abs(pos_cart_tar[:, 1]) < 0.02 * (pos_cart_tar[:, 0] < 0)], dims=(0,)).tolist()
@@ -176,6 +317,63 @@ def plot_fig8(database_data, hrtf_mag_dict_gt):
         print(f"Saved to {save_path}.")
 
 
+def plot_fig10(database_info, itd_dict, itd_dict_gt):
+    for database_name in database_info:
+        save_path = f"figure/fig10/ae_itd_{database_name}.pdf"
+        plot_ae_itd_uniform(database_info, itd_dict, itd_dict_gt, database_name, save_path)
+
+
+def plot_fig11(itd_dict_gt, config):
+    plt.style.use("seaborn-colorblind")
+    s = 0
+    database_name = "hutubs"
+    basename = "_hutubs_sub-89_uniform-9.pt"
+
+    xlim = [-800e-6, 800e-6]
+    ylim = [-800e-6, 800e-6]
+    x = th.linspace(xlim[0], xlim[-1], 100)
+    jnd = 32.5 * 1e-6 + 0.095 * th.abs(x)
+    colors = plt.rcParams['axes.prop_cycle'].by_key()['color']
+
+    for m, method in enumerate(["proposed", "swfe", "rshe", "woodworth"]):
+
+        plt.figure(figsize=(5, 5))
+        plt.grid(zorder=0)
+        plt.plot(x, x + jnd, color='k', linestyle='dashed')
+        plt.plot(x, x - jnd, color='k', linestyle='dashed')
+        plt.plot(x, x, color='k', linestyle='dotted')
+
+        if method == "proposed":
+            itd_pred = th.load(f"exp/v1/itd/itd{basename}")
+        elif method == "swfe":
+            hrtf_pred = th.load(f"exp_baseline/swfe/hrtf/hrtf{basename}")
+            itd_pred = hrir2itd(hrtf2hrir(hrtf_pred.unsqueeze(0)), fs=config.data.max_freq * 2, fs_up=config.data.fs_up)[0]
+        else:
+            itd_pred = th.load(f"exp_baseline/{method}/itd/itd{basename}")
+
+        val = itd_pred
+        val_gt = itd_dict_gt[database_name][s, :]
+        plt.scatter(-val_gt, -val, c=colors[m], marker='.', s=100, lw=0.0, label=method, zorder=2)
+
+        plt.xlim(xlim)
+        plt.ylim(ylim)
+
+        tau_list = th.linspace(xlim[0], xlim[-1], 8 + 1)
+        plt.xticks(tau_list, [f'{tau*1e6:.0f}' for tau in tau_list])
+        # plt.xticklabels()
+
+        tau_list = th.linspace(ylim[0], ylim[-1], 8 + 1)
+        plt.yticks(tau_list, [f'{tau*1e6:.0f}' for tau in tau_list])
+
+        plt.xlabel(r'True ITD  ($\mu$s)')
+        plt.ylabel(r'Estimated ITD  ($\mu$s)')
+
+        save_path = f"figure/fig11/{method}.pdf"
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        plt.savefig(save_path, dpi=400, bbox_inches="tight")
+        print(f"Saved to {save_path}.")
+
+
 def plot_all():
     with open("./config/v1.yaml") as f:
         config = yaml.safe_load(f)
@@ -184,46 +382,38 @@ def plot_all():
     test_dataset = HRTFDataset(config.data, ["all"], (config.data.hutubs.sub_id.test, config.data.riec.sub_id.test))
     test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
 
-    database_data = {}
+    database_info = {}
     hrtf_mag_dict_gt = {}
     itd_dict_gt = {}
     for dataset_name in ["hutubs", "riec"]:
-        database_data[dataset_name] = {}
+        database_info[dataset_name] = {}
         hrtf_mag_dict_gt[dataset_name] = []
         itd_dict_gt[dataset_name] = []
-
     for data, _ in test_loader:
         hrtf_mag, itd, dataset_name = data["hrtf_mag"], data["itd"], data["dataset_name"][0]
         for key in ["frequency", "srcpos_sph", "srcpos_cart"]:
-            if key not in database_data[dataset_name]:
-                database_data[dataset_name][key] = data[key][0]
+            if key not in database_info[dataset_name]:
+                database_info[dataset_name][key] = data[key][0]
         hrtf_mag_dict_gt[dataset_name].append(hrtf_mag)
         itd_dict_gt[dataset_name].append(itd)
-
     for k, v in hrtf_mag_dict_gt.items():
         hrtf_mag_dict_gt[k] = th.cat(v, dim=0)
     for k, v in itd_dict_gt.items():
         itd_dict_gt[k] = th.cat(v, dim=0)
 
-    uniform_num_mes_pos_list = [4, 6] + [(t + 1) ** 2 for t in range(2, 13)]
-    plane_axes_list = [(2,), (1, 2), (0, 1, 2)]
-    plane_parallel_axis_list = [2]
+    # suffix_list = get_suffix_list()
+    # hrtf_mag_dict_pred = get_hrtf_mag_dict(suffix_list, config)
+    # itd_dict_pred = get_itd_dict(suffix_list, config)
+    # th.save(hrtf_mag_dict_pred, "boe/hrtf_mag_dict_pred.pt")
+    # th.save(itd_dict_pred, "boe/itd_dict_pred.pt")
+    hrtf_mag_dict_pred = th.load("boe/hrtf_mag_dict_pred.pt")
+    itd_dict_pred = th.load("boe/itd_dict_pred.pt")
 
-    suffix_list = []
-    for uniform_num_mes_pos in uniform_num_mes_pos_list:
-        suffix_list.append(f"uniform-{uniform_num_mes_pos}")
-    for plane_axes in plane_axes_list:
-        plane_axes_str = ""
-        for axis in plane_axes:
-            plane_axes_str += f"{['x', 'y', 'z'][axis]}"
-        suffix_list.append(f"plane-{plane_axes_str}")
-    for plane_parallel_axis in plane_parallel_axis_list:
-        suffix_list.append(f"plane-parallel-{['x', 'y', 'z'][plane_parallel_axis]}")
-    hrtf_mag_dict = get_hrtf_mag_dict(suffix_list, config)
-
-    plot_fig6(database_data, hrtf_mag_dict, hrtf_mag_dict_gt)
-
-    plot_fig8(database_data, hrtf_mag_dict_gt)
+    # plot_fig6(database_info, hrtf_mag_dict_pred, hrtf_mag_dict_gt)
+    plot_fig7(database_info, hrtf_mag_dict_pred, hrtf_mag_dict_gt)
+    # plot_fig8(database_info, hrtf_mag_dict_gt)
+    # plot_fig10(database_info, itd_dict_pred, itd_dict_gt)
+    # plot_fig11(itd_dict_gt, config)
 
 
 if __name__ == '__main__':

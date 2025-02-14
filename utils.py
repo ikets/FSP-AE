@@ -24,6 +24,23 @@ def sph2cart(phi, theta, r):
     return th.hstack((x.unsqueeze(1), y.unsqueeze(1), z.unsqueeze(1)))
 
 
+def hrtf2hrir(hrtf):
+    '''
+    Args:
+        hrtf: (S, B, 2, L) complex tensor
+    Returns:
+        hrir: (S, B, 2, 2L)
+    '''
+    zeros = th.zeros([hrtf.shape[0], hrtf.shape[1], hrtf.shape[2], 1]).to(hrtf.device).to(hrtf.dtype)
+    tf_fc = th.conj(th.flip(hrtf[:, :, :, :-1], dims=(-1,)))
+
+    hrtf = th.cat((zeros, hrtf, tf_fc), dim=-1)
+    hrir = th.fft.ifft(th.conj(hrtf), dim=-1)
+    hrir = th.real(hrir)
+
+    return hrir
+
+
 def hrir2itd(hrir, thrsh_ms=1000, lowpass=True, upsample_via_cpu=True, conv_cpu=True, fs=32000.0, fs_up=384000.0):
     '''
     Args:
