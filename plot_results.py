@@ -319,17 +319,19 @@ def plot_fig8(database_info, hrtf_mag_dict_gt):
 
 def plot_lsd_plane(hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
     suffix_list = ["plane-z", "plane-yz", "plane-xyz", "plane-parallel-z"]
-    xtick_list = ["plane-{z}", "plane-{yz}", "plane-{xyz}", "plane-parallel-z"]
+    xtick_list = ["plane-{z}", "plane-{y,z}", "plane-{x,y,z}", "plane-parallel-z"]
     hrtf_mag_gt = hrtf_mag_dict_gt[database_name]
 
     w = 1
     width = w * 0.6
     num_method = 4
     dh = width / num_method
-    patterns = ["", ".", "/", "\\"]
-    plt.figure(figsize=(12, 5))
     x_list = th.arange(0, len(suffix_list)).to(float) * w
+    patterns = ["", ".", "/", "\\"]
+    plt.style.use("seaborn-colorblind")
+    plt.figure(figsize=(7, 3))
     plt.xticks(x_list, xtick_list)
+    # plt.rcParams["font.size"] = 20
 
     values = {}
     for m, method in enumerate(["Proposed", "SWFE", "RSHE", "SPCA"]):
@@ -339,7 +341,10 @@ def plot_lsd_plane(hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
             lsd = th.sqrt(th.mean((hrtf_mag_gt - hrtf_mag_pred)**2, dim=3))
             values[method]["mean"].append(th.mean(lsd))
             values[method]["std"].append(th.std(lsd))
-        plt.bar(x_list, values[method]["mean"], yerr=values[method]["std"], width=dh, label=method, zorder=2, hatch=patterns[m], ec="0.3", lw=1, capsize=6 / 0.2 * dh, ecolor="0")
+        plt.bar(x_list + dh * (m - 3 / 2), values[method]["mean"], yerr=values[method]["std"], width=dh, label=method, zorder=2, hatch=patterns[m], ec="0.3", lw=1, capsize=6 / 0.2 * dh, ecolor="0")
+    plt.grid(axis='y')
+    plt.legend(loc='lower center', bbox_to_anchor=(.5, 1.0), ncol=4, frameon=False)
+    plt.ylabel("LSD (dB)")
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     plt.savefig(save_path, dpi=400, bbox_inches="tight")
     print(f"Saved to {save_path}.")
