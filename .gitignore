@@ -11,3 +11,4 @@ cuda-*
 exp/v1/hrir
 exp/v1/hrtf_mag
 exp/v1/itd
+exp_baseline/*/*/*

@@ -59,31 +59,31 @@ def calculate_and_set_stats(model, train_dataset):
             model.set_stats(mean, std, database_name, data_type)
 
 
+@th.no_grad()
 def valid(config, model, valid_loader, device):
-    with th.no_grad():
-        loss_lsd = LSD()
-        loss_ae = th.nn.L1Loss()
-        loss_dict = {"lsd": 0.0, "ae_itd": 0.0}
-        for data, num_mes_pos_tup in tqdm(valid_loader):
-            num_mes_pos = num_mes_pos_tup[0]
-            hrtf_mag, itd, freq, pos_cart_tar, dataset_name = data["hrtf_mag"], data["itd"], data["frequency"], data["srcpos_cart"], data["dataset_name"][0]
+    loss_lsd = LSD()
+    loss_ae = th.nn.L1Loss()
+    loss_dict = {"lsd": 0.0, "ae_itd": 0.0}
+    for data, num_mes_pos_tup in tqdm(valid_loader):
+        num_mes_pos = num_mes_pos_tup[0]
+        hrtf_mag, itd, freq, pos_cart_tar, dataset_name = data["hrtf_mag"], data["itd"], data["frequency"], data["srcpos_cart"], data["dataset_name"][0]
 
-            # sample measuremet positions
-            if num_mes_pos == "all":
-                pos_cart_mes, idx_mes = sample_all(pos_cart_tar[0])
-            else:
-                pos_cart_mes, idx_mes = sample_random(pos_cart_tar[0], num_mes_pos.item())
-            pos_cart_mes, hrtf_mag_mes, itd_mes = pos_cart_mes.unsqueeze(0), hrtf_mag[:, idx_mes, :, :], itd[:, idx_mes]
+        # sample measuremet positions
+        if num_mes_pos == "all":
+            pos_cart_mes, idx_mes = sample_all(pos_cart_tar[0])
+        else:
+            pos_cart_mes, idx_mes = sample_random(pos_cart_tar[0], num_mes_pos.item())
+        pos_cart_mes, hrtf_mag_mes, itd_mes = pos_cart_mes.unsqueeze(0), hrtf_mag[:, idx_mes, :, :], itd[:, idx_mes]
 
-            hrtf_mag_pred, itd_pred = model(hrtf_mag_mes, itd_mes, freq, pos_cart_mes, pos_cart_tar, dataset_name, device)
-            loss_dict["lsd"] += loss_lsd(hrtf_mag_pred, hrtf_mag, dim=3)
-            loss_dict["ae_itd"] += loss_ae(itd_pred, itd)
+        hrtf_mag_pred, itd_pred = model(hrtf_mag_mes, itd_mes, freq, pos_cart_mes, pos_cart_tar, dataset_name, device)
+        loss_dict["lsd"] += loss_lsd(hrtf_mag_pred, hrtf_mag, dim=3)
+        loss_dict["ae_itd"] += loss_ae(itd_pred, itd)
 
-        loss_all = 0.0
-        for k, v in loss_dict.items():
-            v /= len(valid_loader)
-            loss_all += config.training.loss_weight[k] * v
-        print(f"all: {loss_all}, lsd: {loss_dict['lsd'].item()}, ae_itd: {loss_dict['ae_itd'].item()}")
+    loss_all = 0.0
+    for k, v in loss_dict.items():
+        v /= len(valid_loader)
+        loss_all += config.training.loss_weight[k] * v
+    print(f"all: {loss_all}, lsd: {loss_dict['lsd'].item()}, ae_itd: {loss_dict['ae_itd'].item()}")
 
     return loss_all
 

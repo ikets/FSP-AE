@@ -26,7 +26,7 @@ def infer_and_save(model, hrtf_mag_mes, itd_mes, freq, pos_cart_mes, pos_cart_ta
     th.save(hrtf_mag_pred, f"{exp_dir}/hrtf_mag/hrtf_mag_{suffix}.pt")
     th.save(itd_pred, f"{exp_dir}/itd/itd_{suffix}.pt")
     th.save(hrir_pred, f"{exp_dir}/hrir/hrir_{suffix}.pt")
-    print(f"Saved in {exp_dir}/`data_type`/`data_type`_{suffix}.pt. (`data_type`: hrtf_mag, itd, hrir)")
+    print(f"Saved in {exp_dir}/<data_type>/<data_type>_{suffix}.pt. (`data_type`: hrtf_mag, itd, hrir)")
 
 
 def test(args):
