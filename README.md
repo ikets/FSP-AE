@@ -4,7 +4,7 @@
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
 <p style="text-align: center;">
-    <img src="https://github.com/ikets/FSP-AE/blob/main/figure/spatial_upsampling.png" height=12>
+    <img src="https://github.com/ikets/FSP-AE/blob/main/figure/spatial_upsampling.png" height=80>
 </p>
 
 This repository contains the official implementation of **"Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency" [[PDF]]()** published in <em> IEEE Open Journal of Signal Processing</em>.<br>
