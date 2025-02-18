@@ -24,9 +24,6 @@ You can test our pretrained model with [this short tutorial notebook](https://co
 ## Installation
 1. Clone this repository.
 2. Download [the HUTUBS HRTF database](http://dx.doi.org/10.14279/depositonce-8487) [2,3], and extract `HRIRs.zip` into `data/hutubs/HRIRs`.
-```sh
-wget https://depositonce.tu-berlin.de/bitstreams/9f8b8874-c567-43fa-9085-eac010599a66/download data/hubuts
-```
 3. Download [the RIEC HRTF Dataset](http://www.riec.tohoku.ac.jp/pub/hrtf/index.html) [4], and extract `RIEC_hrtf_all.zip` into `data/riec`.
 4. Set up the Python environment. For example, if you use `pyenv-virtualenv`, run:
     ```sh
