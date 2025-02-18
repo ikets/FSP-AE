@@ -1,3 +1,4 @@
+import argparse
 from attrdict import AttrDict
 import matplotlib.pyplot as plt
 import numpy as np
@@ -42,7 +43,7 @@ def get_pt_list(prefix, suffix, database_name, sub_id_range):
     return pt_list
 
 
-def get_hrtf_mag_dict(suffix_list, config):
+def get_hrtf_mag_dict(suffix_list, config, exp_dirs):
     hrtf_mag_dict = {}
     for database_name in ["hutubs", "riec"]:
         hrtf_mag_dict[database_name] = {}
@@ -50,22 +51,22 @@ def get_hrtf_mag_dict(suffix_list, config):
             hrtf_mag_dict[database_name][suffix] = {}
             # proposed
             sub_id_range = config.data[database_name]["sub_id"]["test"]
-            pt_list = get_pt_list("exp/v1/hrtf_mag/hrtf_mag", suffix, database_name, sub_id_range)
+            pt_list = get_pt_list(f"{exp_dirs[0]}/hrtf_mag/hrtf_mag", suffix, database_name, sub_id_range)
             hrtf_mag_dict[database_name][suffix]["Proposed"] = concat_pt_files(pt_list)
             # swfe
-            pt_list = get_pt_list("exp_baseline/swfe/hrtf/hrtf", suffix, database_name, sub_id_range)
+            pt_list = get_pt_list(f"{exp_dirs[1]}/swfe/hrtf/hrtf", suffix, database_name, sub_id_range)
             hrtf_mags = 20 * th.log10(th.abs(concat_pt_files(pt_list)))
             hrtf_mag_dict[database_name][suffix]["SWFE"] = hrtf_mags
             # rshe
-            pt_list = get_pt_list("exp_baseline/rshe/hrtf_mag/hrtf_mag", suffix, database_name, sub_id_range)
+            pt_list = get_pt_list(f"{exp_dirs[1]}/rshe/hrtf_mag/hrtf_mag", suffix, database_name, sub_id_range)
             hrtf_mag_dict[database_name][suffix]["RSHE"] = concat_pt_files(pt_list)
             # spca
-            pt_list = get_pt_list("exp_baseline/spca/hrtf_mag/hrtf_mag", suffix, database_name, sub_id_range)
+            pt_list = get_pt_list(f"{exp_dirs[1]}/spca/hrtf_mag/hrtf_mag", suffix, database_name, sub_id_range)
             hrtf_mag_dict[database_name][suffix]["SPCA"] = concat_pt_files(pt_list)
     return hrtf_mag_dict
 
 
-def get_itd_dict(suffix_list, config):
+def get_itd_dict(suffix_list, config, exp_dirs):
     itd_dict = {}
     for database_name in ["hutubs", "riec"]:
         itd_dict[database_name] = {}
@@ -73,16 +74,16 @@ def get_itd_dict(suffix_list, config):
             itd_dict[database_name][suffix] = {}
             # proposed
             sub_id_range = config.data[database_name]["sub_id"]["test"]
-            pt_list = get_pt_list("exp/v1/itd/itd", suffix, database_name, sub_id_range)
+            pt_list = get_pt_list(f"{exp_dirs[0]}/itd/itd", suffix, database_name, sub_id_range)
             itd_dict[database_name][suffix]["Proposed"] = concat_pt_files(pt_list)
             # swfe
-            pt_list = get_pt_list("exp_baseline/swfe/hrtf/hrtf", suffix, database_name, sub_id_range)
+            pt_list = get_pt_list(f"{exp_dirs[1]}/swfe/hrtf/hrtf", suffix, database_name, sub_id_range)
             itd_dict[database_name][suffix]["SWFE"] = hrir2itd(hrtf2hrir(concat_pt_files(pt_list)), fs=config.data.max_freq * 2, fs_up=config.data.fs_up)
             # rshe
-            pt_list = get_pt_list("exp_baseline/rshe/itd/itd", suffix, database_name, sub_id_range)
+            pt_list = get_pt_list(f"{exp_dirs[1]}/rshe/itd/itd", suffix, database_name, sub_id_range)
             itd_dict[database_name][suffix]["RSHE"] = concat_pt_files(pt_list)
             # woodworth
-            pt_list = get_pt_list("exp_baseline/woodworth/itd/itd", suffix, database_name, sub_id_range)
+            pt_list = get_pt_list(f"{exp_dirs[1]}/woodworth/itd/itd", suffix, database_name, sub_id_range)
             itd_dict[database_name][suffix]["Woodworth"] = concat_pt_files(pt_list)
     return itd_dict
 
@@ -118,6 +119,7 @@ def plot_lsd_uniform(database_info, hrtf_mag_dict, hrtf_mag_dict_gt, database_na
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     plt.savefig(save_path, dpi=400, bbox_inches="tight")
     print(f"Saved to {save_path}.")
+    plt.close()
 
 
 def plot_ae_ild_uniform(database_info, hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
@@ -157,6 +159,7 @@ def plot_ae_ild_uniform(database_info, hrtf_mag_dict, hrtf_mag_dict_gt, database
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     plt.savefig(save_path, dpi=400, bbox_inches="tight")
     print(f"Saved to {save_path}.")
+    plt.close()
 
 
 def plot_ae_itd_uniform(database_info, itd_dict, itd_dict_gt, database_name, save_path):
@@ -191,6 +194,7 @@ def plot_ae_itd_uniform(database_info, itd_dict, itd_dict_gt, database_name, sav
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     plt.savefig(save_path, dpi=400, bbox_inches="tight")
     print(f"Saved to {save_path}.")
+    plt.close()
 
 
 def vhlines(ax, linestyle='-', color='gray', zorder=1, alpha=0.8, lw=0.75):
@@ -242,6 +246,7 @@ def plotazimzeni(pos, c, cblabel, cmap="viridis", figsize=(10.5, 4.5), emphasize
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     plt.savefig(save_path, dpi=400, bbox_inches="tight")
     print(f"Saved to {save_path}.")
+    plt.close()
 
 
 def plot_fig6(database_info, hrtf_mag_dict, hrtf_mag_dict_gt):
@@ -263,11 +268,11 @@ def plot_fig7(database_info, hrtf_mag_dict, hrtf_mag_dict_gt):
         lsd = th.sqrt(th.mean((hrtf_mag_gt - hrtf_mag_pred)**2, dim=-1))  # (S, B, 2)
         lsd = th.mean(lsd[:, :, lr], dim=0)  # (B)
 
-        save_path = f"figure/fig7/{method}.pdf"
+        save_path = f"figure/fig7/{method.lower()}.pdf"
         plotazimzeni(pos=database_info[database_name]["srcpos_sph"], c=lsd, cblabel="LSD (dB)", idx_mes_pos=idx_mes, vmin=2, vmax=6, save_path=save_path)
 
 
-def plot_fig8(database_info, hrtf_mag_dict_gt):
+def plot_fig8(database_info, hrtf_mag_dict_gt, exp_dirs):
     lr = 0
     s = 0
     database_name = "hutubs"
@@ -286,12 +291,12 @@ def plot_fig8(database_info, hrtf_mag_dict_gt):
         if method == "ground_truth":
             hrtf_mag_pred = hrtf_mag_dict_gt[database_name][s, :, :, :]
         elif method == "proposed":
-            hrtf_mag_pred = th.load(f"exp/v1/hrtf_mag/hrtf_mag{basename}")
+            hrtf_mag_pred = th.load(f"{exp_dirs[0]}/hrtf_mag/hrtf_mag{basename}")
         elif method == "swfe":
-            hrtf_pred = th.load(f"exp_baseline/swfe/hrtf/hrtf{basename}")
+            hrtf_pred = th.load(f"{exp_dirs[1]}/swfe/hrtf/hrtf{basename}")
             hrtf_mag_pred = 20 * th.log10(th.abs(hrtf_pred))
         else:
-            hrtf_mag_pred = th.load(f"exp_baseline/{method}/hrtf_mag/hrtf_mag{basename}")
+            hrtf_mag_pred = th.load(f"{exp_dirs[1]}/{method}/hrtf_mag/hrtf_mag{basename}")
 
         hrtf_mag_plot = hrtf_mag_pred[b_list, lr, :]
 
@@ -315,6 +320,7 @@ def plot_fig8(database_info, hrtf_mag_dict_gt):
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         plt.savefig(save_path, dpi=400, bbox_inches="tight")
         print(f"Saved to {save_path}.")
+        plt.close()
 
 
 def plot_lsd_plane(hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
@@ -348,6 +354,7 @@ def plot_lsd_plane(hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     plt.savefig(save_path, dpi=400, bbox_inches="tight")
     print(f"Saved to {save_path}.")
+    plt.close()
 
 
 def plot_fig9(database_info, hrtf_mag_dict, hrtf_mag_dict_gt):
@@ -362,7 +369,7 @@ def plot_fig10(database_info, itd_dict, itd_dict_gt):
         plot_ae_itd_uniform(database_info, itd_dict, itd_dict_gt, database_name, save_path)
 
 
-def plot_fig11(itd_dict_gt, config):
+def plot_fig11(itd_dict_gt, config, exp_dirs):
     plt.style.use("seaborn-colorblind")
     s = 0
     database_name = "hutubs"
@@ -383,12 +390,12 @@ def plot_fig11(itd_dict_gt, config):
         plt.plot(x, x, color='k', linestyle='dotted')
 
         if method == "proposed":
-            itd_pred = th.load(f"exp/v1/itd/itd{basename}")
+            itd_pred = th.load(f"{exp_dirs[0]}/itd/itd{basename}")
         elif method == "swfe":
-            hrtf_pred = th.load(f"exp_baseline/swfe/hrtf/hrtf{basename}")
+            hrtf_pred = th.load(f"{exp_dirs[1]}/swfe/hrtf/hrtf{basename}")
             itd_pred = hrir2itd(hrtf2hrir(hrtf_pred.unsqueeze(0)), fs=config.data.max_freq * 2, fs_up=config.data.fs_up)[0]
         else:
-            itd_pred = th.load(f"exp_baseline/{method}/itd/itd{basename}")
+            itd_pred = th.load(f"{exp_dirs[1]}/{method}/itd/itd{basename}")
 
         val = itd_pred
         val_gt = itd_dict_gt[database_name][s, :]
@@ -407,14 +414,15 @@ def plot_fig11(itd_dict_gt, config):
         plt.xlabel(r'True ITD  ($\mu$s)')
         plt.ylabel(r'Estimated ITD  ($\mu$s)')
 
-        save_path = f"figure/fig11/{method}.pdf"
+        save_path = f"figure/fig11/{method.lower()}.pdf"
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         plt.savefig(save_path, dpi=400, bbox_inches="tight")
         print(f"Saved to {save_path}.")
+        plt.close()
 
 
-def plot_all():
-    with open("./config/v1.yaml") as f:
+def main(args):
+    with open(f"{args.exp_dir_proposed}/config.yaml") as f:
         config = yaml.safe_load(f)
     config = AttrDict(config)
 
@@ -440,21 +448,27 @@ def plot_all():
     for k, v in itd_dict_gt.items():
         itd_dict_gt[k] = th.cat(v, dim=0)
 
-    # suffix_list = get_suffix_list()
-    # hrtf_mag_dict_pred = get_hrtf_mag_dict(suffix_list, config)
-    # itd_dict_pred = get_itd_dict(suffix_list, config)
+    exp_dirs = [args.exp_dir_proposed, args.exp_dir_baseline]
+    suffix_list = get_suffix_list()
+    hrtf_mag_dict_pred = get_hrtf_mag_dict(suffix_list, config, exp_dirs)
+    itd_dict_pred = get_itd_dict(suffix_list, config, exp_dirs)
     # th.save(hrtf_mag_dict_pred, "boe/hrtf_mag_dict_pred.pt")
     # th.save(itd_dict_pred, "boe/itd_dict_pred.pt")
-    hrtf_mag_dict_pred = th.load("boe/hrtf_mag_dict_pred.pt")
-    itd_dict_pred = th.load("boe/itd_dict_pred.pt")
+    # hrtf_mag_dict_pred = th.load("boe/hrtf_mag_dict_pred.pt")
+    # itd_dict_pred = th.load("boe/itd_dict_pred.pt")
 
-    # plot_fig6(database_info, hrtf_mag_dict_pred, hrtf_mag_dict_gt)
-    # plot_fig7(database_info, hrtf_mag_dict_pred, hrtf_mag_dict_gt)
-    # plot_fig8(database_info, hrtf_mag_dict_gt)
+    plot_fig6(database_info, hrtf_mag_dict_pred, hrtf_mag_dict_gt)
+    plot_fig7(database_info, hrtf_mag_dict_pred, hrtf_mag_dict_gt)
+    plot_fig8(database_info, hrtf_mag_dict_gt, exp_dirs)
     plot_fig9(database_info, hrtf_mag_dict_pred, hrtf_mag_dict_gt)
     plot_fig10(database_info, itd_dict_pred, itd_dict_gt)
-    # plot_fig11(itd_dict_gt, config)
+    plot_fig11(itd_dict_gt, config, exp_dirs)
 
 
 if __name__ == '__main__':
-    plot_all()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--exp_dir_proposed", default="exp/v1")
+    parser.add_argument("--exp_dir_baseline", default="exp_baseline")
+
+    args = parser.parse_args()
+    main(args)

@@ -1,13 +1,12 @@
 import argparse
 import os
+import shutil
 import torch as th
-from torch.utils.data import DataLoader
-from tqdm import tqdm
 
 from dataset import HRTFDataset
 from baseline import sph_wavefunc_expansion, real_sph_harm_expansion, spatial_principal_component_analysis, woodworth, calculate_spc_mat_and_mean_vec
 from sampling import sample_uniform, sample_plane, sample_plane_parallel
-from utils import load_yaml, get_hrir_with_itd
+from utils import load_yaml
 
 
 def prepare_directories(par_dir):
@@ -88,8 +87,8 @@ def infer_and_save(hrtf_mag, hrtf, itd, idx_mes, freq, pos_cart_tar, pos_sph_tar
 def test(args):
     config = load_yaml(args.config_path)
     exp_dir = args.exp_dir
-
     prepare_directories(exp_dir)
+    shutil.copy(args.config_path, f"{exp_dir}/config.yaml")
 
     test_dataset = HRTFDataset(config.data, ["all"], (config.data.hutubs.sub_id.test, config.data.riec.sub_id.test))
 

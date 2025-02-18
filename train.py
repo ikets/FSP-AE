@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import os
 import random
+import shutil
 import torch as th
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -101,6 +102,7 @@ def train(args):
     if os.path.isdir(exp_dir) and not args.forced:
         raise RuntimeError(f"{exp_dir} already exists! Use -f option to overwrite.")
     os.makedirs(exp_dir, exist_ok=True)
+    shutil.copy(args.config_path, f"{exp_dir}/config.yaml")
 
     # prepare dataset
     train_dataset = HRTFDataset(config.data, config.training.num_mes_pos_train, (config.data.hutubs.sub_id.train, config.data.riec.sub_id.train))
@@ -175,7 +177,7 @@ if __name__ == '__main__':
     parser.add_argument("-c", "--config_path", default="./config/v1.yaml")
     parser.add_argument("-d", "--device", default="cuda")
     parser.add_argument("-s", "--seed", default=0)
-    parser.add_argument("-f", "--forced", default=False)
+    parser.add_argument("-f", "--forced", action="store_true")
 
     args = parser.parse_args()
     train(args)

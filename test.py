@@ -26,22 +26,22 @@ def infer_and_save(model, hrtf_mag_mes, itd_mes, freq, pos_cart_mes, pos_cart_ta
     th.save(hrtf_mag_pred[0], f"{exp_dir}/hrtf_mag/hrtf_mag_{suffix}.pt")
     th.save(itd_pred[0], f"{exp_dir}/itd/itd_{suffix}.pt")
     th.save(hrir_pred[0], f"{exp_dir}/hrir/hrir_{suffix}.pt")
-    print(f"Saved in {exp_dir}/<data_kind>/<data_kind>_{suffix}.pt. (`data_kind`: hrtf_mag, itd, hrir)")
+    print(f"Saved in {exp_dir}/<data_kind>/<data_kind>_{suffix}.pt. (<data_kind>: hrtf_mag, itd, hrir)")
 
 
 def test(args):
-    config = load_yaml(args.config_path)
-    device = args.device
-    exp_dir = f"exp/{os.path.basename(args.config_path).split('.')[0]}"
+    exp_dir = args.exp_dir
     os.makedirs(f"{exp_dir}/hrtf_mag", exist_ok=True)
     os.makedirs(f"{exp_dir}/itd", exist_ok=True)
     os.makedirs(f"{exp_dir}/hrir", exist_ok=True)
+    device = args.device
 
+    config = load_yaml(f"{exp_dir}/config.yaml")
     test_dataset = HRTFDataset(config.data, ["all"], (config.data.hutubs.sub_id.test, config.data.riec.sub_id.test))
     test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
 
     model = FreqSrcPosCondAutoEncoder(config.architecture)
-    model = load_state(f"{exp_dir}/checkpoint_best_manual.pt", model)
+    model = load_state(f"{exp_dir}/checkpoint_best.pt", model)
     model.eval()
 
     uniform_num_mes_pos_list = [4, 6] + [(t + 1) ** 2 for t in range(2, 13)]
@@ -85,7 +85,7 @@ def test(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--config_path", default="./config/v1.yaml")
+    parser.add_argument("-e", "--exp_dir", default="exp/v1")
     parser.add_argument("-d", "--device", default="cuda")
 
     args = parser.parse_args()

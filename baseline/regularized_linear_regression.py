@@ -80,7 +80,6 @@ def sph_wavefunc_expansion(hrtf, freq, mes_pos_sph, tar_pos_sph, reg_param=1e-6,
     N_o_l_list = th.minimum(th.ceil(np.e * k_list * r_shoulder / 2).to(th.int), th.tensor([N_o_max]))
 
     hrtf_pred = th.zeros(size=[tar_pos_sph.shape[0]] + list(hrtf.shape[1:]), dtype=hrtf.dtype, device=hrtf.device)
-    print(N_o_l_list)
 
     for l, (k_l, N_o_l) in enumerate(zip(k_list, N_o_l_list)):
         n_vec, m_vec = sph_harm_nmvec(int(N_o_l))

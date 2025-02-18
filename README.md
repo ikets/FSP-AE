@@ -7,42 +7,64 @@
     <img src="https://github.com/ikets/FSP-AE/blob/main/figure/spatial_upsampling.png" width=90%>
 </div>
 
-This repository contains the official implementation of **"Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency" [[PDF]]()** published in <em> IEEE Open Journal of Signal Processing</em>.<br>
-Please cite [1] in your work when using this code in your experiments.
+This repository contains the official implementation of **"Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency" [[PDF]]()** published in *IEEE Open Journal of Signal Processing*.<br>
+
+If you use this code in your experiments, please cite [1] in your work.
 
 ## Requirements
 We checked the code with the following computational environment.
 - Ubuntu 20.04.2 LTS
 - GeForce RTX 3090 (24GB VRAM)
 - Python 3.8.10
+
+See `requirements.txt` for the required Python libraries.
 ## Tutorial on Colab
-You can test our pretrained model with [a short tutorial notebook](path_to_ipynb).
+You can test our pretrained model with [this short tutorial notebook](path_to_ipynb).
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](path_to_ipynb)
 ## Installation
 1. Clone this repository.
-2. Download [the HUTUBS HRTF database](http://dx.doi.org/10.14279/depositonce-8487) [2,3] and extract `HRIRs.zip` in `data/hutubs`.
-3. Download [the RIEC HRTF Dataset](http://www.riec.tohoku.ac.jp/pub/hrtf/index.html) [4] and extract `RIEC_hrtf_all.zip` in `data/riec`.
-4. Prepare python environment. For example, if you use pyenv-virtualenv, run:
+2. Download [the HUTUBS HRTF database](http://dx.doi.org/10.14279/depositonce-8487) [2,3], and extract `HRIRs.zip` into `data/hutubs/HRIRs`.
+```sh
+wget https://depositonce.tu-berlin.de/bitstreams/9f8b8874-c567-43fa-9085-eac010599a66/download data/hubuts
+```
+3. Download [the RIEC HRTF Dataset](http://www.riec.tohoku.ac.jp/pub/hrtf/index.html) [4], and extract `RIEC_hrtf_all.zip` into `data/riec`.
+4. Set up the Python environment. For example, if you use `pyenv-virtualenv`, run:
+    ```sh
+    pyenv install 3.8.10
+    pyenv virtualenv 3.8.10 fsp_ae
+    pyenv activate fsp_ae
+    pip install --upgrade pip
+    pip install -r requirements.txt
     ```
-    $ pyenv install 3.8.10
-    $ pyenv virtualenv 3.8.10 fsp_ae
-    $ pyenv activate fsp_ae
-    $ pip install --upgrade pip
-    $ pip install -r requirements.txt
-    ```
-## Usage
-- To train a new model, run:<br>`$ python3 train.py --config_path config/<your_config>.yaml --device "cuda"`
 
-- To test our pretrained model, run:<br>`$ python3 test.py --config_path config/v1.yaml --device  "cuda"`
+## Testing
+- To test our pretrained model, run:  
+  ```sh
+  python3 test.py --exp_dir exp/v1 --device cpu
+  ```
 
-- To test baseline methods, run:<br>`$ python3 test_baseline.py --config_path config/baseline_v1.yaml --exp_dir exp_baseline`
+- To test baseline methods, run:  
+  ```sh
+  python3 test_baseline.py --config_path config/baseline_v1.yaml --exp_dir exp_baseline
+  ```
 
-- To plot figures of test results, run:<br>`$ python3 plot_results.py`
+- To plot test result figures, run:  
+  ```sh
+  python3 plot_results.py --exp_dir_proposed exp/v1 --exp_dir_baseline exp_baseline
+  ```
+
+
+## Training
+- To train a new model, run:
+  ```sh
+  python3 train.py --config_path config/<your_config>.yaml --device cuda
+  ```
+
 ## Note
-`sampling/grids/grid_t*d*.mat` are 3D Cartesian coordinates of the points contained in spherical t-design [5] and are obtained from [6].
+- `sampling/grids/grid_t*d*.mat` contains 3D Cartesian coordinates of points in a spherical *t*-design [5], obtained from [6].
 
 ## Cite
-```
+```bibtex
 @article{Ito:OJSP2025,
   author    = {Yuki Ito and Tomohiko Nakamura and Shoichi Koyama and Shuichi Sakamoto and Hiroshi Saruwatari},
   title     = {Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency},
