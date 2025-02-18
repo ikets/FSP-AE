@@ -19,8 +19,8 @@ We checked the code with the following computational environment.
 
 See `requirements.txt` for the required Python libraries.
 ## Tutorial on Colab
-You can test our pretrained model with [this short tutorial notebook](path_to_ipynb).
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](path_to_ipynb)
+You can test our pretrained model with [this short tutorial notebook](https://colab.research.google.com/github/ikets/FAP-AE/blob/main/notebook/tutorial.ipynb).
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ikets/FAP-AE/blob/main/notebook/tutorial.ipynb)
 ## Installation
 1. Clone this repository.
 2. Download [the HUTUBS HRTF database](http://dx.doi.org/10.14279/depositonce-8487) [2,3], and extract `HRIRs.zip` into `data/hutubs/HRIRs`.
