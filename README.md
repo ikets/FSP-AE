@@ -3,6 +3,8 @@
 [![pytorch](https://img.shields.io/badge/PyTorch_1.9-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/get-started/locally/)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
+<img src="https://github.com/ikets/FSP-AE/blob/main/figure/spatial_upsampling.png">
+
 This repository contains the official implementation of **"Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency" [[PDF]]()** published in <em> IEEE Open Journal of Signal Processing</em>.<br>
 Please cite [1] in your work when using this code in your experiments.
 
