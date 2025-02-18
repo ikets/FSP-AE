@@ -13,4 +13,4 @@ exp/v1/hrtf_mag
 exp/v1/itd
 exp_baseline/*/*/*
 boe_*
-figure/*
+figure/fig*
