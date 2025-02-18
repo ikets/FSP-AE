@@ -1,8 +1,9 @@
-# FSP-AE [![python](https://img.shields.io/badge/-Python_3.8-blue?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3810/) [![pytorch](https://img.shields.io/badge/PyTorch_1.9-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/get-started/locally/) [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
+# FSP-AE
+[![python](https://img.shields.io/badge/-Python_3.8-blue?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3810/)
+[![pytorch](https://img.shields.io/badge/PyTorch_1.9-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/get-started/locally/)
+[![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
-<img src="https://github.com/ikets/FSP-AE/blob/main/figure/spatial_upsampling.png">
-
-This repository contains the official implementation of **"Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency" [[PDF]]()** published in IEEE OJSP.<br>
+This repository contains the official implementation of **"Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency" [[PDF]]()** published in <em> IEEE Open Journal of Signal Processing</em>.<br>
 Please cite [1] in your work when using this code in your experiments.
 
 ## Requirements
@@ -11,7 +12,7 @@ We checked the code with the following computational environment.
 - GeForce RTX 3090 (24GB VRAM)
 - Python 3.8.10
 ## Tutorial on Colab
-You can test our pretrained model with [a short tutorial notebook](path_to_ipynb) we have prepared.
+You can test our pretrained model with [a short tutorial notebook](path_to_ipynb).
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](path_to_ipynb)
 ## Installation
 1. Clone this repository.
@@ -26,7 +27,7 @@ You can test our pretrained model with [a short tutorial notebook](path_to_ipynb
     $ pip install -r requirements.txt
     ```
 ## Usage
-- To train your model, run:<br>`$ python3 train.py --config_path config/<your_config>.yaml --device "cuda"`
+- To train a new model, run:<br>`$ python3 train.py --config_path config/<your_config>.yaml --device "cuda"`
 
 - To test our pretrained model, run:<br>`$ python3 test.py --config_path config/v1.yaml --device  "cuda"`
 
