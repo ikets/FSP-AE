@@ -87,7 +87,6 @@ def infer_and_save(hrtf_mag, hrtf, itd, idx_mes, freq, pos_cart_tar, pos_sph_tar
 
 def test(args):
     config = load_yaml(args.config_path)
-    device = args.device
     exp_dir = args.exp_dir
 
     prepare_directories(exp_dir)
@@ -152,7 +151,6 @@ def test(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--config_path", default="./config/baseline_v1.yaml")
-    parser.add_argument("-d", "--device", default="cuda")
     parser.add_argument("-e", "--exp_dir", default="exp_baseline")
     parser.add_argument("-l", "--load_spca_dict", action="store_true")
 
