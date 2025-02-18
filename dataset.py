@@ -8,12 +8,15 @@ from utils import sph2cart, hrir2itd
 
 
 class HRTFDataset(th.utils.data.Dataset):
-    def __init__(self, config, num_mes_pos_list, sub_ids):
+    def __init__(self, config, num_mes_pos_list, sub_ids, use_cache=True):
         super().__init__()
         self.config = config
         self.mag2db = ta.transforms.AmplitudeToDB(stype="magnitude", top_db=80)
         self.sofa_paths = []
-        self.data = {}  # chache
+        if use_cache:
+            self.cache = {}
+        else:
+            self.cache = None
         self.num_mes_pos_list = num_mes_pos_list
         # HUTUBS
         for sub_id in range(sub_ids[0][0], sub_ids[0][1]):
@@ -35,8 +38,8 @@ class HRTFDataset(th.utils.data.Dataset):
         return len(self.sofa_paths) * len(self.num_mes_pos_list)
 
     def get_data(self, sofa_path):
-        if sofa_path in self.data:
-            item = self.data[sofa_path]
+        if self.cache is not None and sofa_path in self.cache:
+            item = self.cache[sofa_path]
         else:
             if "hutubs" in sofa_path:
                 dataset_name = "hutubs"
@@ -47,7 +50,8 @@ class HRTFDataset(th.utils.data.Dataset):
             else:
                 raise NotImplementedError
             item = self.sofa2data(sofa_path, False, dataset_name, front_id)
-            self.data[sofa_path] = item
+            if self.cache is not None:
+                self.cache[sofa_path] = item
         return item
 
     def sofa2data(self, sofa_path, multiple_green_func=False, dataset_name="hutubs", front_id=202):

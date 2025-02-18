@@ -17,8 +17,8 @@ You can test our pretrained model with [a short tutorial notebook](path_to_ipynb
 ## Installation
 1. Clone this repository.
 2. Download [the HUTUBS HRTF database](http://dx.doi.org/10.14279/depositonce-8487) [2,3] and extract `HRIRs.zip` in `data/hutubs`.
-3. Download [the RIEC dataset](http://www.riec.tohoku.ac.jp/pub/hrtf/index.html) [4] and extract `RIEC_hrtf_all.zip` in `data/riec`.
-4. Prepare python environment. For example, if you use pyenv-virtualenv, run following command.
+3. Download [the RIEC HRTF Dataset](http://www.riec.tohoku.ac.jp/pub/hrtf/index.html) [4] and extract `RIEC_hrtf_all.zip` in `data/riec`.
+4. Prepare python environment. For example, if you use pyenv-virtualenv, run:
     ```
     $ pyenv install 3.8.10
     $ pyenv virtualenv 3.8.10 fsp_ae
@@ -42,7 +42,7 @@ You can test our pretrained model with [a short tutorial notebook](path_to_ipynb
 @article{Ito:OJSP2025,
   author    = {Yuki Ito and Tomohiko Nakamura and Shoichi Koyama and Shuichi Sakamoto and Hiroshi Saruwatari},
   title     = {Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency},
-  journal   = {},
+  journal   = {IEEE Open Journal of Signal Processing},
   year      = {2025},
   volume    = {},
   pages     = {},
