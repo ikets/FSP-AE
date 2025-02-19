@@ -76,6 +76,12 @@ class FreqSrcPosCondAutoEncoder(nn.Module):
             output = input * self.stats[dataset_name][data_type]["std"].to(device) + self.stats[dataset_name][data_type]["mean"].to(device)
         return output
 
+    def switch_device(self, inputs, device="cuda"):
+        outputs = []
+        for input in inputs:
+            outputs.append(input.to(device))
+        return outputs
+
     def get_conditioning_vector(self, pos_cart, freq, use_num_pos=False, device="cuda"):
         S, B, _ = pos_cart.shape
         L = freq.shape[1]
@@ -109,7 +115,7 @@ class FreqSrcPosCondAutoEncoder(nn.Module):
         conditioning_vector.append(delta)
 
         conditioning_vector = th.cat(conditioning_vector, dim=-1)  # (S, B, 2L+1, 50 or 49)
-        return conditioning_vector
+        return conditioning_vector.to(device)
 
     def forward(self, hrtf_mag, itd, freq, mes_pos_cart, tar_pos_cart, dataset_name="none", device="cuda"):
         '''
@@ -129,6 +135,8 @@ class FreqSrcPosCondAutoEncoder(nn.Module):
         _, B_m, _, L = hrtf_mag.shape
         assert hrtf_mag.shape[1] == itd.shape[1] == B_m
         B_t = tar_pos_cart.shape[1]
+
+        hrtf_mag, itd, freq, mes_pos_cart, tar_pos_cart = self.switch_device([hrtf_mag, itd, freq, mes_pos_cart, tar_pos_cart], device=device)
 
         hrtf_mag = self.standardize(hrtf_mag, dataset_name, "hrtf_mag", device=device)  # (S, B_m, 2, L)
         itd = self.standardize(itd, dataset_name, "itd", device=device).unsqueeze(-1)  # (S, B_m, 1)

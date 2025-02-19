@@ -1,4 +1,6 @@
 from attrdict import AttrDict
+import logging
+import os
 import torch as th
 import torchaudio as ta
 import yaml
@@ -8,6 +10,18 @@ def load_yaml(yaml_path):
     with open(yaml_path) as f:
         config = yaml.safe_load(f)
     return AttrDict(config)
+
+
+def get_logger(dir, filename="train.log"):
+    global logger
+    logger = logging.getLogger(os.path.basename(dir))
+    logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    h = logging.FileHandler(f"{dir}/{filename}")
+    h.setLevel(logging.DEBUG)
+    h.setFormatter(formatter)
+    logger.addHandler(h)
+    return logger
 
 
 def sph2cart(phi, theta, r):

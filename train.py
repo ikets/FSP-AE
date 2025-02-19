@@ -5,16 +5,17 @@ import random
 import shutil
 import torch as th
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from dataset import HRTFDataset
 from loss import LSD
 from model import FreqSrcPosCondAutoEncoder
 from sampling import sample_all, sample_random
-from utils import load_yaml
+from utils import load_yaml, get_logger
 
 
-def load_state(path, model, optimizer=None, scheduler=None):
+def load_state(path, model, optimizer=None, scheduler=None, logger=None):
     state_dicts = th.load(path)
     model.load_state_dict(state_dicts["model"])
     model.stats = state_dicts["stats"]
@@ -24,11 +25,14 @@ def load_state(path, model, optimizer=None, scheduler=None):
         scheduler.load_state_dict(state_dicts["scheduler"])
     epoch = state_dicts["epoch"]
     best_valid_loss = state_dicts["best_valid_loss"]
-    print(f"Loaded checkpoint {path} from epoch {epoch}.")
+    if logger is None:
+        print(f"Loaded checkpoint {path} from epoch {epoch}.")
+    else:
+        logger.info(f"Loaded checkpoint {path} from epoch {epoch}.")
     return model, optimizer, scheduler, epoch, best_valid_loss
 
 
-def save_state(path, model, optimizer=None, scheduler=None, epoch=0, best_valid_loss=1e10):
+def save_state(path, model, optimizer=None, scheduler=None, epoch=0, best_valid_loss=1e10, logger=None):
     states = {
         "model": model.state_dict(),
         "stats": model.stats,
@@ -38,7 +42,10 @@ def save_state(path, model, optimizer=None, scheduler=None, epoch=0, best_valid_
         "best_valid_loss": best_valid_loss
     }
     th.save(states, path)
-    print(f"Saved in {path}.")
+    if logger is None:
+        print(f"Saved in {path}.")
+    else:
+        logger.info(f"Saved in {path}.")
 
 
 def calculate_and_set_stats(model, train_dataset):
@@ -61,13 +68,14 @@ def calculate_and_set_stats(model, train_dataset):
 
 
 @th.no_grad()
-def valid(config, model, valid_loader, device):
+def valid(config, model, valid_loader, device, writer, logger, iters):
     loss_lsd = LSD()
     loss_ae = th.nn.L1Loss()
     loss_dict = {"lsd": 0.0, "ae_itd": 0.0}
-    for data, num_mes_pos_tup in tqdm(valid_loader):
+    logger.info("Validation:")
+    for data, num_mes_pos_tup in tqdm(valid_loader, leave=False):
         num_mes_pos = num_mes_pos_tup[0]
-        hrtf_mag, itd, freq, pos_cart_tar, dataset_name = data["hrtf_mag"], data["itd"], data["frequency"], data["srcpos_cart"], data["dataset_name"][0]
+        hrtf_mag, itd, freq, pos_cart_tar, dataset_name = data["hrtf_mag"].to(device), data["itd"].to(device), data["frequency"].to(device), data["srcpos_cart"].to(device), data["dataset_name"][0]
 
         # sample measuremet positions
         if num_mes_pos == "all":
@@ -84,7 +92,9 @@ def valid(config, model, valid_loader, device):
     for k, v in loss_dict.items():
         v /= len(valid_loader)
         loss_all += config.training.loss_weight[k] * v
-    print(f"all: {loss_all}, lsd: {loss_dict['lsd'].item()}, ae_itd: {loss_dict['ae_itd'].item()}")
+        writer.add_scalar(f"validation/{k}", v.item(), iters)
+    writer.add_scalar("validation/all", loss_all, iters)
+    logger.info(f"all: {loss_all:.3f}, lsd: {loss_dict['lsd'].item():.3f}, ae_itd: {loss_dict['ae_itd'].item():.3e}")
 
     return loss_all
 
@@ -104,6 +114,12 @@ def train(args):
     os.makedirs(exp_dir, exist_ok=True)
     shutil.copy(args.config_path, f"{exp_dir}/config.yaml")
 
+    log_dir = f"{exp_dir}/logs"
+    os.makedirs(log_dir, exist_ok=True)
+    writer = SummaryWriter(log_dir)
+    logger = get_logger(log_dir)
+    logger.info(config)
+
     # prepare dataset
     train_dataset = HRTFDataset(config.data, config.training.num_mes_pos_train, (config.data.hutubs.sub_id.train, config.data.riec.sub_id.train))
     train_loader = DataLoader(dataset=train_dataset, batch_size=1, shuffle=False)
@@ -114,25 +130,26 @@ def train(args):
     optimizer = th.optim.Adam(model.parameters(), lr=config.training.lr)
     scheduler = th.optim.lr_scheduler.MultiStepLR(optimizer, milestones=config.training.lr_milestones, gamma=config.training.lr_gamma)
     if config.training.checkpoint_path is not None:
-        model, optimizer, scheduler, epoch_offset, best_valid_loss = load_state(config.training.checkpoint_path, model, optimizer, scheduler)
+        model, optimizer, scheduler, epoch_offset, best_valid_loss = load_state(config.training.checkpoint_path, model, optimizer, scheduler, logger)
     else:
         epoch_offset = 0
         best_valid_loss = 1e10
+    iters = epoch_offset * len(train_loader)
+
     calculate_and_set_stats(model, train_dataset)
+    model = model.to(device)
 
     loss_lsd = LSD()
     loss_ae = th.nn.L1Loss()
 
-    print("=======")
-    print(model)
-    print("=======")
+    logger.info(model)
 
     for epoch in range(epoch_offset + 1, config.training.epochs + 1):
-        print(f"\nEpoch {epoch}")
+        logger.info(f"Epoch {epoch} Training:")
         model.train()
-        for data, num_mes_pos_tup in tqdm(train_loader):
+        for data, num_mes_pos_tup in tqdm(train_loader, leave=False):
             num_mes_pos = num_mes_pos_tup[0]
-            hrtf_mag, itd, freq, pos_cart_tar, dataset_name = data["hrtf_mag"], data["itd"], data["frequency"], data["srcpos_cart"], data["dataset_name"][0]
+            hrtf_mag, itd, freq, pos_cart_tar, dataset_name = data["hrtf_mag"].to(device), data["itd"].to(device), data["frequency"].to(device), data["srcpos_cart"].to(device), data["dataset_name"][0]
 
             # Sample measuremet positions
             if num_mes_pos == "all":
@@ -150,26 +167,32 @@ def train(args):
             loss = 0
             for k, v in loss_dict.items():
                 loss += config.training.loss_weight[k] * v
+                if num_mes_pos == "all":
+                    writer.add_scalar(f"training/{k}", v.item(), iters)
+            if num_mes_pos == "all":
+                writer.add_scalar("training/all", loss.item(), iters)
             loss.backward()
             optimizer.step()
+            iters += 1
+        writer.add_scalar("epoch", epoch, iters)
+        writer.add_scalar("learning_rate", scheduler.get_last_lr()[0], iters)
         scheduler.step()
 
         # Validation
         model.eval()
-        valid_loss = valid(config, model, valid_loader, device)
+        valid_loss = valid(config, model, valid_loader, device, writer, logger, iters)
         if valid_loss < best_valid_loss:
             save_path_best = f"{exp_dir}/checkpoint_best.pt"
-            save_state(save_path_best, model, optimizer, scheduler, epoch, best_valid_loss)
-            print(f"Best valid loss: {valid_loss}! Saved in {save_path_best}.")
+            save_state(save_path_best, model, optimizer, scheduler, epoch, best_valid_loss, logger)
+            logger.info(f"Best valid loss: {valid_loss:.3f}. Saved in {save_path_best}.")
             best_valid_loss = valid_loss
         if epoch % config.training.save_interval == 0:
             save_path_log = f"{exp_dir}/checkpoint_log_{epoch}epoch.pt"
-            save_state(save_path_log, model, optimizer, scheduler, epoch, best_valid_loss)
-            print(f"Saved in {save_path_log}.")
+            save_state(save_path_log, model, optimizer, scheduler, epoch, best_valid_loss, logger)
+            logger.info(f"Saved in {save_path_log}.")
 
     save_path_last = f"{exp_dir}/checkpoint_final_{epoch}epoch.pt"
-    save_state(save_path_last, model, optimizer, scheduler, epoch, best_valid_loss)
-    print(f"Saved in {save_path_last}.")
+    save_state(save_path_last, model, optimizer, scheduler, epoch, best_valid_loss, logger)
 
 
 if __name__ == '__main__':

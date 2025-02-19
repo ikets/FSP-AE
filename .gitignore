@@ -16,3 +16,5 @@ exp/v1/itd
 exp_baseline/*/*/*
 figure/fig*
 figure/old
+requirements_*
+nohup*
