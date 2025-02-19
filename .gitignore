@@ -4,6 +4,7 @@ __pycache__
 config/old
 *v1_dbg*
 notebook/boe*.ipynb
+notebook/fig*
 boe
 boe_*
 data/*/*

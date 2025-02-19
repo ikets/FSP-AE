@@ -23,9 +23,9 @@ def infer_and_save(model, hrtf_mag_mes, itd_mes, freq, pos_cart_mes, pos_cart_ta
         hrtf_mag_pred, itd_pred = model(hrtf_mag_mes, itd_mes, freq, pos_cart_mes, pos_cart_tar, dataset_name, device)
         hrir_pred = get_hrir_with_itd(hrtf_mag_pred, itd_pred, input_kind="hrtf_mag", fs=config.data.max_freq * 2, fs_up=config.data.fs_up)
 
-    th.save(hrtf_mag_pred[0], f"{exp_dir}/hrtf_mag/hrtf_mag_{suffix}.pt")
-    th.save(itd_pred[0], f"{exp_dir}/itd/itd_{suffix}.pt")
-    th.save(hrir_pred[0], f"{exp_dir}/hrir/hrir_{suffix}.pt")
+    th.save(hrtf_mag_pred[0].cpu(), f"{exp_dir}/hrtf_mag/hrtf_mag_{suffix}.pt")
+    th.save(itd_pred[0].cpu(), f"{exp_dir}/itd/itd_{suffix}.pt")
+    th.save(hrir_pred[0].cpu(), f"{exp_dir}/hrir/hrir_{suffix}.pt")
     print(f"Saved in {exp_dir}/<data_kind>/<data_kind>_{suffix}.pt. (<data_kind>: hrtf_mag, itd, hrir)")
 
 
@@ -42,6 +42,7 @@ def test(args):
 
     model = FreqSrcPosCondAutoEncoder(config.architecture)
     model = load_state(f"{exp_dir}/checkpoint_best.pt", model)
+    model = model.to(device)
     model.eval()
 
     uniform_num_mes_pos_list = [4, 6] + [(t + 1) ** 2 for t in range(2, 13)]
@@ -49,7 +50,7 @@ def test(args):
     plane_parallel_axis_list = [2]
 
     for data, _ in tqdm(test_loader):
-        hrtf_mag, itd, freq, pos_cart_tar, radius, dataset_name, sofa_path = data["hrtf_mag"], data["itd"], data["frequency"], data["srcpos_cart"], data["srcpos_sph"][0, 0, 0], data["dataset_name"][0], data["sofa_path"][0]
+        hrtf_mag, itd, freq, pos_cart_tar, radius, dataset_name, sofa_path = data["hrtf_mag"].to(device), data["itd"].to(device), data["frequency"].to(device), data["srcpos_cart"].to(device), data["srcpos_sph"][0, 0, 0], data["dataset_name"][0], data["sofa_path"][0]
 
         if dataset_name == "hutubs":
             sub_id = os.path.basename(sofa_path).split("_")[0].replace("pp", "")

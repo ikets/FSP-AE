@@ -89,9 +89,10 @@ def get_itd_dict(suffix_list, config, exp_dirs):
 
 
 def plot_lsd_uniform(database_info, hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
-    plt.style.use("seaborn-colorblind")
-    plt.figure(figsize=(10, 6))
-    plt.rcParams["font.size"] = 20
+    plt.style.use("seaborn-v0_8-colorblind")
+    plt.figure(figsize=(8, 5))
+    fs = 16
+    plt.rcParams["font.size"] = fs
     num_mes_pos_list = [4, 6] + [(t + 1) ** 2 for t in range(2, 13)]
     num_mes_pos_list_actual = []
     for num_mes_pos in num_mes_pos_list:
@@ -111,9 +112,10 @@ def plot_lsd_uniform(database_info, hrtf_mag_dict, hrtf_mag_dict_gt, database_na
             values[method]["std"].append(th.std(lsd))
         plt.errorbar(num_mes_pos_list_actual, values[method]["mean"], yerr=values[method]["std"], capsize=5, fmt=format[method], label=method, mec="black", ms=10)
 
-    plt.ylabel("LSD (dB)")
-    plt.xlabel('Number of measurement positions ' + r'$B^{(\mathrm{m})}$')
-    plt.legend(loc='lower center', bbox_to_anchor=(.5, 1.0), ncol=4, frameon=False)
+    plt.ylabel("LSD (dB)", fontsize=fs + 2)
+    plt.xlabel('Number of measurement positions ' + r'$B^{(\mathrm{m})}$', fontsize=fs + 2)
+    # plt.legend(loc='lower center', bbox_to_anchor=(.5, 1.0), ncol=4, frameon=False)
+    plt.legend(bbox_to_anchor=(-0.1, 1.15), loc="upper left", borderaxespad=0, ncol=4, fancybox=False, frameon=False, fontsize=fs)
     plt.grid()
     plt.xscale("log")
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
@@ -123,9 +125,10 @@ def plot_lsd_uniform(database_info, hrtf_mag_dict, hrtf_mag_dict_gt, database_na
 
 
 def plot_ae_ild_uniform(database_info, hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
-    plt.style.use("seaborn-colorblind")
-    plt.figure(figsize=(10, 6))
-    plt.rcParams["font.size"] = 20
+    plt.style.use("seaborn-v0_8-colorblind")
+    plt.figure(figsize=(8, 5))
+    fs = 16
+    plt.rcParams["font.size"] = fs
     num_mes_pos_list = [4, 6] + [(t + 1) ** 2 for t in range(2, 13)]
     num_mes_pos_list_actual = []
     for num_mes_pos in num_mes_pos_list:
@@ -151,9 +154,10 @@ def plot_ae_ild_uniform(database_info, hrtf_mag_dict, hrtf_mag_dict_gt, database
             values[method]["std"].append(th.std(ild_ae))
         plt.errorbar(num_mes_pos_list_actual, values[method]["mean"], yerr=values[method]["std"], capsize=5, fmt=format[method], label=method, mec="black", ms=10)
 
-    plt.ylabel(r"$\mathrm{AE}^{(\mathrm{ILD})}$" + " (dB)")
-    plt.xlabel('Number of measurement positions ' + r'$B^{(\mathrm{m})}$')
-    plt.legend(loc='lower center', bbox_to_anchor=(.5, 1.0), ncol=4, frameon=False)
+    plt.ylabel(r"$\mathrm{AE}^{(\mathrm{ILD})}$" + " (dB)", fontsize=fs + 2)
+    plt.xlabel('Number of measurement positions ' + r'$B^{(\mathrm{m})}$', fontsize=fs + 2)
+    # plt.legend(loc='lower center', bbox_to_anchor=(.5, 1.0), ncol=4, frameon=False)
+    plt.legend(bbox_to_anchor=(-0.1, 1.15), loc="upper left", borderaxespad=0, ncol=4, fancybox=False, frameon=False, fontsize=fs)
     plt.grid()
     plt.xscale("log")
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
@@ -163,9 +167,12 @@ def plot_ae_ild_uniform(database_info, hrtf_mag_dict, hrtf_mag_dict_gt, database
 
 
 def plot_ae_itd_uniform(database_info, itd_dict, itd_dict_gt, database_name, save_path):
-    plt.style.use("seaborn-colorblind")
-    plt.figure(figsize=(10, 6))
-    plt.rcParams["font.size"] = 20
+    plt.style.use("seaborn-v0_8-colorblind")
+    # plt.figure(figsize=(10, 6))
+    # plt.rcParams["font.size"] = 20
+    plt.figure(figsize=(8, 5))
+    fs = 16
+    plt.rcParams["font.size"] = fs
     num_mes_pos_list = [4, 6] + [(t + 1) ** 2 for t in range(2, 13)]
     num_mes_pos_list_actual = []
     for num_mes_pos in num_mes_pos_list:
@@ -186,9 +193,11 @@ def plot_ae_itd_uniform(database_info, itd_dict, itd_dict_gt, database_name, sav
             values[method]["std"].append(th.std(itd_ae))
         plt.errorbar(num_mes_pos_list_actual, np.array(values[method]["mean"]) * 1e6, yerr=np.array(values[method]["std"]) * 1e6, capsize=5, fmt=format[method], label=method, mec="black", ms=10)
 
-    plt.ylabel(r"$\mathrm{AE}^{(\mathrm{ITD})}$" + " ($\mu$s)")
-    plt.xlabel('Number of measurement positions ' + r'$B^{(\mathrm{m})}$')
-    plt.legend(loc='lower center', bbox_to_anchor=(.5, 1.0), ncol=4, frameon=False)
+    plt.ylabel(r"$\mathrm{AE}^{(\mathrm{ITD})}$" + " ($\mu$s)", fontsize=fs + 2)
+    plt.xlabel('Number of measurement positions ' + r'$B^{(\mathrm{m})}$', fontsize=fs + 2)
+    # plt.legend(loc='lower center', bbox_to_anchor=(.5, 1.0), ncol=4, frameon=False)
+    # plt.legend(bbox_to_anchor=(-0.1, 1.15), loc="upper left", borderaxespad=0, ncol=4, fancybox=False, frameon=False, fontsize=fs)
+    plt.legend(bbox_to_anchor=(-0.15, 1.12), loc='upper left', borderaxespad=0, fontsize=fs, fancybox=False, frameon=False, ncol=4, labelspacing=0.1)
     plt.grid()
     plt.xscale("log")
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
@@ -219,6 +228,7 @@ def plotazimzeni(pos, c, cblabel, cmap="viridis", figsize=(10.5, 4.5), emphasize
         figsie: (*,*) tuple.
         dpi: scalar.
     '''
+    plt.rcParams["font.size"] = 16
     fig, ax = plt.subplots(figsize=figsize)
     vhlines(ax)
     if vmin is None:
@@ -303,24 +313,34 @@ def plot_fig8(database_info, hrtf_mag_dict_gt, exp_dirs):
         plt.rcParams["font.size"] = 20
         figsize = (10.5, 6)
 
-        plt.figure(figsize=figsize)
-        plt.imshow(hrtf_mag_plot, vmax=5, vmin=-25, aspect="auto", cmap="viridis")
-        plt.colorbar(label="Magnitude (dB)")
+        fig = plt.figure(figsize=figsize)
+        ax = fig.add_subplot(111)
+        im = ax.imshow(hrtf_mag_plot, vmax=5, vmin=-25, aspect="auto", cmap="viridis")
+        fig.colorbar(im, label="Magnitude (dB)")
 
-        plt.xlim([-1, 127])
-        plt.xticks(np.arange(0, 128 + 1, 16) - 1, (np.arange(0, 128 + 1, 16) * 125 / 1000).astype(int))
-        plt.xlabel("Frequency (kHz)")
-        plt.yticks(ylist, [f"{zeni[b].item()/np.pi*180:.0f}" for b in th.tensor(b_list)[ylist]])
-        plt.ylabel("Zenith (deg)", labelpad=30)
+        ax.set_xlim([-1, 127])
+        ax.set_xticks(np.arange(0, 128 + 1, 16) - 1, (np.arange(0, 128 + 1, 16) * 125 / 1000).astype(int))
+        ax.set_xlabel("Frequency (kHz)", fontsize=24)
+        ax.set_yticks(ylist, [f"{zeni[b].item()  /np.pi * 180:.0f}" for b in th.tensor(b_list)[ylist]])
+        ax.set_ylabel("Zenith (deg)\n", fontsize=24)
 
-        plt.text(-20, 10, "Back", rotation="vertical")
-        plt.text(-20, 28, "Front", rotation="vertical")
+        # plt.text(-20, 10, "Back", rotation="vertical")
+        # plt.text(-20, 28, "Front", rotation="vertical")
+        fig.text(
+            0.03, 0.88,  # 位置 (x, y)
+            # "Front                                    Back",
+            r"Front $\leftarrow$                           $\rightarrow$ Back",
+            fontsize=20,
+            ha="left",
+            va="top",
+            rotation=90,
+        )
 
         save_path = f"figure/fig8/{method}.pdf"
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
-        plt.savefig(save_path, dpi=400, bbox_inches="tight")
+        fig.savefig(save_path, dpi=600, transparent=True, bbox_inches="tight")
         print(f"Saved to {save_path}.")
-        plt.close()
+        plt.close(fig)
 
 
 def plot_lsd_plane(hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
@@ -334,10 +354,10 @@ def plot_lsd_plane(hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
     dh = width / num_method
     x_list = th.arange(0, len(suffix_list)).to(float) * w
     patterns = ["", ".", "/", "\\"]
-    plt.style.use("seaborn-colorblind")
-    plt.figure(figsize=(7, 3))
+    plt.style.use("seaborn-v0_8-colorblind")
+    plt.rcParams["font.size"] = 16
+    plt.figure(figsize=(9, 4.5))
     plt.xticks(x_list, xtick_list)
-    # plt.rcParams["font.size"] = 20
 
     values = {}
     for m, method in enumerate(["Proposed", "SWFE", "RSHE", "SPCA"]):
@@ -349,7 +369,8 @@ def plot_lsd_plane(hrtf_mag_dict, hrtf_mag_dict_gt, database_name, save_path):
             values[method]["std"].append(th.std(lsd))
         plt.bar(x_list + dh * (m - 3 / 2), values[method]["mean"], yerr=values[method]["std"], width=dh, label=method, zorder=2, hatch=patterns[m], ec="0.3", lw=1, capsize=6 / 0.2 * dh, ecolor="0")
     plt.grid(axis='y')
-    plt.legend(loc='lower center', bbox_to_anchor=(.5, 1.0), ncol=4, frameon=False)
+    # plt.legend(loc='lower center', bbox_to_anchor=(.5, 1.0), ncol=4, frameon=False)
+    plt.legend(bbox_to_anchor=(0., 1.1), loc='upper left', borderaxespad=0, fancybox=False, frameon=False, ncol=4)
     plt.ylabel("LSD (dB)")
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     plt.savefig(save_path, dpi=400, bbox_inches="tight")
@@ -370,7 +391,7 @@ def plot_fig10(database_info, itd_dict, itd_dict_gt):
 
 
 def plot_fig11(itd_dict_gt, config, exp_dirs):
-    plt.style.use("seaborn-colorblind")
+    plt.style.use("seaborn-v0_8-colorblind")
     s = 0
     database_name = "hutubs"
     basename = "_hutubs_sub-89_uniform-9.pt"
@@ -384,6 +405,8 @@ def plot_fig11(itd_dict_gt, config, exp_dirs):
     for m, method in enumerate(["proposed", "swfe", "rshe", "woodworth"]):
 
         plt.figure(figsize=(5, 5))
+        fs = 18
+        plt.rcParams['font.size'] = fs
         plt.grid(zorder=0)
         plt.plot(x, x + jnd, color='k', linestyle='dashed')
         plt.plot(x, x - jnd, color='k', linestyle='dashed')
@@ -399,16 +422,16 @@ def plot_fig11(itd_dict_gt, config, exp_dirs):
 
         val = itd_pred
         val_gt = itd_dict_gt[database_name][s, :]
-        plt.scatter(-val_gt, -val, c=colors[m], marker='.', s=100, lw=0.0, label=method, zorder=2)
+        plt.scatter(-val_gt, -val, c=colors[m], marker='.', s=100, label=method, zorder=2)
 
         plt.xlim(xlim)
         plt.ylim(ylim)
 
-        tau_list = th.linspace(xlim[0], xlim[-1], 8 + 1)
+        tau_list = th.linspace(xlim[0], xlim[-1], 4 + 1)
         plt.xticks(tau_list, [f'{tau*1e6:.0f}' for tau in tau_list])
         # plt.xticklabels()
 
-        tau_list = th.linspace(ylim[0], ylim[-1], 8 + 1)
+        tau_list = th.linspace(ylim[0], ylim[-1], 4 + 1)
         plt.yticks(tau_list, [f'{tau*1e6:.0f}' for tau in tau_list])
 
         plt.xlabel(r'True ITD  ($\mu$s)')
@@ -449,13 +472,13 @@ def main(args):
         itd_dict_gt[k] = th.cat(v, dim=0)
 
     exp_dirs = [args.exp_dir_proposed, args.exp_dir_baseline]
-    suffix_list = get_suffix_list()
-    hrtf_mag_dict_pred = get_hrtf_mag_dict(suffix_list, config, exp_dirs)
-    itd_dict_pred = get_itd_dict(suffix_list, config, exp_dirs)
+    # suffix_list = get_suffix_list()
+    # hrtf_mag_dict_pred = get_hrtf_mag_dict(suffix_list, config, exp_dirs)
+    # itd_dict_pred = get_itd_dict(suffix_list, config, exp_dirs)
     # th.save(hrtf_mag_dict_pred, "boe/hrtf_mag_dict_pred.pt")
     # th.save(itd_dict_pred, "boe/itd_dict_pred.pt")
-    # hrtf_mag_dict_pred = th.load("boe/hrtf_mag_dict_pred.pt")
-    # itd_dict_pred = th.load("boe/itd_dict_pred.pt")
+    hrtf_mag_dict_pred = th.load("boe/hrtf_mag_dict_pred.pt")
+    itd_dict_pred = th.load("boe/itd_dict_pred.pt")
 
     plot_fig6(database_info, hrtf_mag_dict_pred, hrtf_mag_dict_gt)
     plot_fig7(database_info, hrtf_mag_dict_pred, hrtf_mag_dict_gt)

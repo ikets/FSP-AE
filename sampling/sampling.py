@@ -73,8 +73,8 @@ def sample_plane(pos_cart, axes=(0, 1, 2), threshold=0.01):
         subset of pos_cart (B_mes, 3).
         list of sampled index, length: (B_mes)
     '''
-    idx = th.zeros(0)
-    idx_all = th.arange(0, pos_cart.shape[0])
+    idx = th.zeros(0).to(pos_cart.device)
+    idx_all = th.arange(0, pos_cart.shape[0]).to(pos_cart.device)
     for ax in axes:
         idx = th.cat((idx, idx_all[(th.abs(pos_cart[:, ax]) < threshold)]), dim=0)
     idx = idx.to(th.int).tolist()
@@ -94,8 +94,8 @@ def sample_plane_parallel(pos_cart, axis=2, values=(-0.7, 0.0, 0.7), threshold=0
         subset of pos_cart (B_mes, 3).
         list of sampled index, length: (B_mes)
     '''
-    idx = th.zeros(0)
-    idx_all = th.arange(0, pos_cart.shape[0])
+    idx = th.zeros(0).to(pos_cart.device)
+    idx_all = th.arange(0, pos_cart.shape[0]).to(pos_cart.device)
     for v in values:
         idx = th.cat((idx, idx_all[(th.abs(pos_cart[:, axis] - v) < threshold)]), dim=0)
     idx = idx.to(th.int).tolist()
