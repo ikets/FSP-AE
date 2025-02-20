@@ -186,7 +186,7 @@ def train(args):
             save_state(save_path_best, model, optimizer, scheduler, epoch, best_valid_loss, logger)
             logger.info(f"Best valid loss: {valid_loss:.3f}. Saved in {save_path_best}.")
             best_valid_loss = valid_loss
-        if epoch % config.training.save_interval == 0:
+        if epoch % config.training.save_interval == 0 and epoch < config.training.epochs:
             save_path_log = f"{exp_dir}/checkpoint_log_{epoch}epoch.pt"
             save_state(save_path_log, model, optimizer, scheduler, epoch, best_valid_loss, logger)
             logger.info(f"Saved in {save_path_log}.")
