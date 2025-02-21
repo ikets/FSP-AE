@@ -50,21 +50,22 @@ def save_state(path, model, optimizer=None, scheduler=None, epoch=0, best_valid_
 
 def calculate_and_set_stats(model, train_dataset):
     database_names = [database_name for database_name in ["hutubs", "riec"] if database_name not in model.stats]
-    items = {}
-    for database_name in database_names:
-        items[database_name] = {"hrtf_mag": [], "itd": []}
+    if len(database_names) > 0:
+        items = {}
+        for database_name in database_names:
+            items[database_name] = {"hrtf_mag": [], "itd": []}
 
-    for sofa_path in train_dataset.sofa_paths:
-        item = train_dataset.get_data(sofa_path)
-        database_name = item["dataset_name"]
-        for data_kind in ["hrtf_mag", "itd"]:
-            items[database_name][data_kind].append(item[data_kind].unsqueeze(0))
+        for sofa_path in train_dataset.sofa_paths:
+            item = train_dataset.get_data(sofa_path)
+            database_name = item["dataset_name"]
+            for data_kind in ["hrtf_mag", "itd"]:
+                items[database_name][data_kind].append(item[data_kind].unsqueeze(0))
 
-    for database_name in database_names:
-        for data_kind in ["hrtf_mag", "itd"]:
-            items_cat = th.cat(items[database_name][data_kind], dim=0)
-            mean, std = th.mean(items_cat), th.std(items_cat)
-            model.set_stats(mean, std, database_name, data_kind)
+        for database_name in database_names:
+            for data_kind in ["hrtf_mag", "itd"]:
+                items_cat = th.cat(items[database_name][data_kind], dim=0)
+                mean, std = th.mean(items_cat), th.std(items_cat)
+                model.set_stats(mean, std, database_name, data_kind)
 
 
 @th.no_grad()
@@ -126,7 +127,7 @@ def train(args):
     valid_dataset = HRTFDataset(config.data, config.training.num_mes_pos_valid, (config.data.hutubs.sub_id.valid, config.data.riec.sub_id.valid))
     valid_loader = DataLoader(dataset=valid_dataset, batch_size=1, shuffle=False)
 
-    model = FreqSrcPosCondAutoEncoder(config.architecture)
+    model = FreqSrcPosCondAutoEncoder(config.architecture).to(device)
     optimizer = th.optim.Adam(model.parameters(), lr=config.training.lr)
     scheduler = th.optim.lr_scheduler.MultiStepLR(optimizer, milestones=config.training.lr_milestones, gamma=config.training.lr_gamma)
     if config.training.checkpoint_path is not None:
@@ -137,7 +138,7 @@ def train(args):
     iters = epoch_offset * len(train_loader)
 
     calculate_and_set_stats(model, train_dataset)
-    model = model.to(device)
+    # model = model.to(device)
 
     loss_lsd = LSD()
     loss_ae = th.nn.L1Loss()

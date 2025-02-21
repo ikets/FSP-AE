@@ -5,7 +5,7 @@ config/old
 *v1_dbg*
 notebook
 boe
-boe_*
+*boe_*
 data/*/*
 cuda-*
 data_dbg
@@ -14,7 +14,7 @@ exp/old
 exp/v1/hrir
 exp/v1/hrtf_mag
 exp/v1/itd
-exp_baseline
+# exp_baseline
 figure/fig*
 figure/old
 figure_d*
