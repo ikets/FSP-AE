@@ -12,57 +12,75 @@ This repository contains the official implementation of **"Spatial Upsampling of
 If you use this code in your experiments, please cite [1] in your work.
 
 ## System Requirements
-We checked the code with the following computational environment.
-- Ubuntu 24.04.2 LTS or 22.04.4 LTS
-- NVIDIA RTX A5000 (24GB VRAM)
-- CUDA 12.4
-- Python 3.9.21
+Tested on the following environment:
+- OS: Ubuntu 22.04, 24.04
+- GPU: NVIDIA RTX A5000 (24GB VRAM)
+- CUDA: cuda 12.4
+- Docker: version 27.5.1
 
-See `requirements.txt` for the required Python libraries.
+If not using Docker, use Python 3.9. Required libraries are listed in [`requirements.txt`](https://github.com/ikets/FSP-AE/blob/main/requirements.txt).
 
-## Installation
-1. Install Docker.
-2. Clone this repository and move to the top directory by
+## Installation (with Docker)
+1. Install `Docker`.
+2. Clone the repository and navigate to the top directory:
     ```
     $ git clone git@github.com:ikets/FSP-AE.git
     $ cd FSP-AE
     ```
-3. Build docker image by
+3. Build Docker image:
     ```
     $ bash sh/docker_build.sh
     ```
-4. Run docker container by
-    ```
+4. Run Docker container:
+    ```bash
     $ bash sh/docker_run.sh
     ```
 5. Download and extract files from [the HUTUBS HRTF database](http://dx.doi.org/10.14279/depositonce-8487) [2,3] and [the RIEC HRTF Dataset](http://www.riec.tohoku.ac.jp/pub/hrtf/index.html) [4].
     ```
     root@foobar:/app# bash sh/prepare_data.sh
     ```
-
+## Installation (with pyenv-virtualenv)
+1. Install `pyenv` and `pyenv-virtualenv`.
+2. Clone the repository and navigate to the top directory:
+    ```
+    $ git clone git@github.com:ikets/FSP-AE.git
+    $ cd FSP-AE
+    ```
+3. Setup the virtual environment:
+    ```
+    $ pyenv install 3.9.21
+    $ pyenv virtualenv 3.9.21 fsp_ae
+    $ pyenv activate fsp_ae
+    $ pip install --upgrade pip
+    $ pip install -r requirements.txt
+    ```
+4. Download and extract files from [the HUTUBS HRTF database](http://dx.doi.org/10.14279/depositonce-8487) [2,3] and [the RIEC HRTF Dataset](http://www.riec.tohoku.ac.jp/pub/hrtf/index.html) [4].
+    ```
+    $ bash sh/prepare_data.sh
+    ```
 ## Testing
-- To test our pretrained model, run:  
+- Test our pretrained model:  
   ```
-  root@foobar:/app# python3 test.py --exp_dir exp/v1 --device cpu
-  ```
-
-- To test baseline methods, run:  
-  ```
-  root@foobar:/app# python3 test_baseline.py --config_path config/baseline_v1.yaml --exp_dir exp_baseline
+  $ python3 test.py --exp_dir exp/v1 --device cpu
   ```
 
-- To plot test result figures, run:  
+- Test the baseline methods:  
   ```
-  root@foobar:/app# python3 plot_results.py --exp_dir_proposed exp/v1 --exp_dir_baseline exp_baseline --out_dir figure
+  $ python3 test_baseline.py --config_path config/baseline_v1.yaml --exp_dir exp_baseline
   ```
 
-- You can sequentially run the above 3 commands by
+- Plot test result figures:  
   ```
-  root@foobar:/app# bash reproduce_results.sh
+  $ python3 plot_results.py --exp_dir_proposed exp/v1 --exp_dir_baseline exp_baseline --out_dir figure
+  ```
+or
+- Sequentially run the above commands:
+  ```
+  $ bash reproduce_results.sh
   ```
 
 ## Training
-- To train a new model, run:
+- Train a new model:
   ```
   root@foobar:/app# python3 train.py --config_path config/<your_config>.yaml --device cuda
   ```
