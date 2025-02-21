@@ -64,12 +64,11 @@ class HRTFDataset(th.utils.data.Dataset):
         srcpos_sph[:, :2] = srcpos_sph[:, :2] / 180 * np.pi  # azimuth in [0,2*pi), zenith in [0,pi]
         if dataset_name == "riec":
             assert th.all(th.abs(srcpos_sph[:, 2] - 1.5) < 1e-3)
-            # srcpos_sph[:, 2] = 1.5
         srcpos_sph = th.cat((srcpos_sph[:, 2].unsqueeze(1), srcpos_sph[:, :2]), dim=1)  # radius, azimuth in [0,2*pi), zenith in [0,pi]
         srcpos_cart = sph2cart(srcpos_sph[:, 1], srcpos_sph[:, 2], srcpos_sph[:, 0])
 
         sr_ori = sofa_data.Data.SamplingRate.get_values()[0]  # 44100
-        hrir_ori = th.tensor(sofa_data.Data.IR.get_values())  # 440 x 2 x 256
+        hrir_ori = th.tensor(sofa_data.Data.IR.get_values())  # (440, 2, 256)
 
         # downsampling
         downsampler = ta.transforms.Resample(sr_ori, 2 * self.config.max_freq, dtype=th.float32)

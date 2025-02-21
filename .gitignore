@@ -3,12 +3,12 @@ __pycache__
 .vscode
 config/old
 *v1_dbg*
-notebook/boe*.ipynb
-notebook/fig*
+notebook
 boe
 boe_*
 data/*/*
 cuda-*
+data_dbg
 download
 exp/old
 exp/v1/hrir
@@ -17,5 +17,6 @@ exp/v1/itd
 exp_baseline/*/*/*
 figure/fig*
 figure/old
+figure_d*
 requirements_*
 nohup*

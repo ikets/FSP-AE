@@ -113,10 +113,7 @@ class HyperLinear(nn.Module):
         weight = weight.reshape([num_batches, self.ch_out, self.ch_in])  # (num_batches, ch_out, ch_in)
         bias = self.bias_layers(z)  # (..., ch_out)
 
-        # output = {}
         wx = th.matmul(weight, x.reshape(num_batches, -1, 1)).reshape(batches + [-1])
-        # output["x"] = wx + bias  # F.linear(x, weight, bias)
-        # output["z"] = z
 
         return (wx + bias, z)
 
@@ -137,10 +134,7 @@ class HyperLinearBlock(nn.Module):
             )
 
     def forward(self, input):
-        # x, z = input
-        # x = input["x"] # (B, ch_in)
-        # z = input["z"]  # (B, input_size=3)
-        y, z = self.hyperlinear(input)  # x,z]
+        y, z = self.hyperlinear(input)  # input: (x, z)
         y = self.layers_post(y)
 
         return (y, z)
@@ -159,12 +153,11 @@ class FourierFeatureMapping(nn.Module):
             self.v = self.v.cuda()
 
     def forward(self, x):
-        # x: (S,B,D)
-        x_shape = list(x.shape)
-        x_shape[-1] = self.num_features
-        x = x.reshape(-1, self.input_dim).permute(1, 0)  # D, SB
-        vx = th.matmul(self.v.to(x.device), x)  # J, SB
-        vx = vx.permute(1, 0).reshape(x_shape)  # J, SB -> SB, J -> S, B, J
-        fourierfeatures = th.cat((th.sin(2 * np.pi * vx), th.cos(2 * np.pi * vx)), dim=-1)  # S, B, 2J
+        x_shape = list(x.shape)  # (x.shape[:-1], D)
+        x_shape[-1] = self.num_features    # (x.shape[:-1], J)
+        x = x.reshape(-1, self.input_dim).permute(1, 0)  # (D, *)
+        vx = th.matmul(self.v.to(x.device), x)  # (J, *)
+        vx = vx.permute(1, 0).reshape(x_shape)  # (J, *) -> (*, J) -> (x.shape[:-1], J)
+        fourierfeatures = th.cat((th.sin(2 * np.pi * vx), th.cos(2 * np.pi * vx)), dim=-1)  # (x.shape[:-1], 2J)
 
         return fourierfeatures

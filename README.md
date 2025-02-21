@@ -1,6 +1,6 @@
 # FSP-AE
-[![python](https://img.shields.io/badge/-Python_3.8-blue?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3810/)
-[![pytorch](https://img.shields.io/badge/PyTorch_1.9-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/get-started/locally/)
+[![python](https://img.shields.io/badge/-Python_3.9-blue?logo=python&logoColor=white)](https://www.python.org/downloads/release/python-3921/)
+[![pytorch](https://img.shields.io/badge/PyTorch_2.6-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org/get-started/locally/)
 [![License: CC BY 4.0](https://img.shields.io/badge/License-CC_BY_4.0-lightgrey.svg)](https://creativecommons.org/licenses/by/4.0/)
 
 <div align="center">
@@ -11,50 +11,60 @@ This repository contains the official implementation of **"Spatial Upsampling of
 
 If you use this code in your experiments, please cite [1] in your work.
 
-## Requirements
+## System Requirements
 We checked the code with the following computational environment.
-- Ubuntu 20.04.2 LTS
-- GeForce RTX 3090 (24GB VRAM)
-- Python 3.8.10
+- Ubuntu 24.04.2 LTS or 22.04.4 LTS
+- NVIDIA RTX A5000 (24GB VRAM)
+- CUDA 12.4
+- Python 3.9.21
 
 See `requirements.txt` for the required Python libraries.
-## Tutorial on Colab
-You can test our pretrained model with [this short tutorial notebook](https://colab.research.google.com/github/ikets/FAP-AE/blob/main/notebook/tutorial.ipynb).
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ikets/FAP-AE/blob/main/notebook/tutorial.ipynb)
+
 ## Installation
-1. Clone this repository.
-2. Download [the HUTUBS HRTF database](http://dx.doi.org/10.14279/depositonce-8487) [2,3], and extract `HRIRs.zip` into `data/hutubs/HRIRs`.
-3. Download [the RIEC HRTF Dataset](http://www.riec.tohoku.ac.jp/pub/hrtf/index.html) [4], and extract `RIEC_hrtf_all.zip` into `data/riec`.
-4. Set up the Python environment. For example, if you use `pyenv-virtualenv`, run:
-    ```sh
-    pyenv install 3.8.10
-    pyenv virtualenv 3.8.10 fsp_ae
-    pyenv activate fsp_ae
-    pip install --upgrade pip
-    pip install -r requirements.txt
+1. Install Docker.
+2. Clone this repository and move to the top directory by
+    ```
+    $ git clone git@github.com:ikets/FSP-AE.git
+    $ cd FSP-AE
+    ```
+3. Build docker image by
+    ```
+    $ bash sh/docker_build.sh
+    ```
+4. Run docker container by
+    ```
+    $ bash sh/docker_run.sh
+    ```
+5. Download and extract files from [the HUTUBS HRTF database](http://dx.doi.org/10.14279/depositonce-8487) [2,3] and [the RIEC HRTF Dataset](http://www.riec.tohoku.ac.jp/pub/hrtf/index.html) [4].
+    ```
+    root@foobar:/app# bash sh/prepare_data.sh
     ```
 
 ## Testing
 - To test our pretrained model, run:  
-  ```sh
-  python3 test.py --exp_dir exp/v1 --device cpu
+  ```
+  root@foobar:/app# python3 test.py --exp_dir exp/v1 --device cpu
   ```
 
 - To test baseline methods, run:  
-  ```sh
-  python3 test_baseline.py --config_path config/baseline_v1.yaml --exp_dir exp_baseline
+  ```
+  root@foobar:/app# python3 test_baseline.py --config_path config/baseline_v1.yaml --exp_dir exp_baseline
   ```
 
 - To plot test result figures, run:  
-  ```sh
-  python3 plot_results.py --exp_dir_proposed exp/v1 --exp_dir_baseline exp_baseline
+  ```
+  root@foobar:/app# python3 plot_results.py --exp_dir_proposed exp/v1 --exp_dir_baseline exp_baseline --out_dir figure
   ```
 
+- You can sequentially run the above 3 commands by
+  ```
+  root@foobar:/app# bash reproduce_results.sh
+  ```
 
 ## Training
 - To train a new model, run:
-  ```sh
-  python3 train.py --config_path config/<your_config>.yaml --device cuda
+  ```
+  root@foobar:/app# python3 train.py --config_path config/<your_config>.yaml --device cuda
   ```
 
 ## Note
