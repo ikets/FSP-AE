@@ -82,7 +82,7 @@ or
 ## Training
 - Train a new model:
   ```
-  root@foobar:/app# python3 train.py --config_path config/<your_config>.yaml --device cuda
+  $ python3 train.py --config_path config/<your_config>.yaml --device cuda
   ```
 
 ## Note
