@@ -1,0 +1,57 @@
+exp:
+  seed: 0
+
+data:
+  max_freq: 16000.0
+  num_freq_bin: 128
+  fs_up: 384000.0
+  hutubs:
+    path: "./data/hutubs"
+    sub_id:
+      train: [0, 77]
+      valid: [77, 87]
+      test:  [88, 95]
+    front_id: 202
+  riec:
+    path: "./data/riec"
+    sub_id:
+      train: [0, 86]
+      valid: [86, 97]
+      test:  [97, 105]
+    front_id: 216
+
+training:
+  checkpoint_path: null
+  epochs: 1400
+  save_interval: 200
+  lr: 0.001
+  lr_gamma: 0.1
+  lr_milestones: [800, 1200]
+  loss_weight:
+    lsd: 1.0
+    ae_itd: 2500.0
+  num_mes_pos_train: ["all", 256, 169, 100, 49, 16, 9, 6, 4]
+  num_mes_pos_valid: ["all"]
+
+architecture:
+  encoder:
+    num_layers: 2
+    mid_dim: 16
+    out_dim: 64
+    use_freq: false
+  decoder:
+    num_layers: 2
+    in_dim: 64  # == encoder.out_dim
+    mid_dim: 16
+    use_freq: false
+  weight_bias_generator:
+    num_layers: 2
+    mid_dim: 64
+  fourier_feature_mapping:
+    num_features:
+      source_position: 16
+      frequency: 8
+    trainable: true
+  freq_norm: 16000.0
+  radius_norm: 1.5
+  num_mes_norm: 865.0

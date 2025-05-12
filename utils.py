@@ -1,9 +1,18 @@
-from attrdict import AttrDict
 import logging
 import os
 import torch as th
 import torchaudio as ta
 import yaml
+
+
+class AttrDict(dict):
+    def __getattr__(self, name):
+        value = None
+        if name in self.keys():
+            value = self[name]
+        if isinstance(value, dict):
+            value = AttrDict(value)
+        return value
 
 
 def load_yaml(yaml_path):
