@@ -10,8 +10,8 @@ from sampling import sample_uniform, sample_plane, sample_plane_parallel
 from utils import load_yaml, get_hrir_with_itd
 
 
-def load_state(path, model):
-    state_dicts = th.load(path)
+def load_state(path, model, device):
+    state_dicts = th.load(path, map_location=device)
     model.load_state_dict(state_dicts["model"])
     model.stats = state_dicts["stats"]
     print(f"Loaded checkpoint {path}.")
@@ -41,7 +41,7 @@ def test(args):
     test_loader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
 
     model = FreqSrcPosCondAutoEncoder(config.architecture)
-    model = load_state(f"{exp_dir}/checkpoint_best.pt", model)
+    model = load_state(f"{exp_dir}/checkpoint_best.pt", model, device)
     model = model.to(device)
     model.eval()
 
