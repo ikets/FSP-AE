@@ -95,10 +95,8 @@ or
   title     = {Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency},
   journal   = {IEEE Open Journal of Signal Processing},
   year      = {2025},
-  volume    = {},
-  pages     = {},
   publisher = {IEEE},
-  doi       = {}
+  note      = {(accepted)}
 }
 ```
 
@@ -106,7 +104,8 @@ or
 [CC-BY-4.0](https://github.com/ikets/FSP-AE/blob/main/LICENSE)
 
 ## References
-[1] Yuki Ito, Tomohiko Nakamura, Shoichi Koyama, Shuichi Sakamoto, and Hiroshi Saruwatari, <strong>“Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency,”</strong> <em>IEEE Open J. Signal Process.</em>, vol. XX, pp. xxxx-xxxx, 2025. [[PDF]]() <br>
+[1] Yuki Ito, Tomohiko Nakamura, Shoichi Koyama, Shuichi Sakamoto, and Hiroshi Saruwatari, <strong>“Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency,”</strong> <em>IEEE Open J. Signal Process.</em>, 2025.  (accepted) <br>
+<!-- vol. XX, pp. xxxx-xxxx, 2025.  [[PDF]]()  -->
 
 [2] Fabian Brinkmann, Manoj Dinakaran, Robert Pelzer, Peter Grosche,  Daniel Voss, and Stefan Weinzierl, “A cross-evaluated database of measured and simulated HRTFs including 3D head meshes, anthropometric features, and headphone impulse responses”, <em>J. Audio Eng. Soc.</em>, vol. 67, no. 9, pp. 705–718, 2019.<br>
 
