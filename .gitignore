@@ -19,6 +19,7 @@ exp/v1_*
 figure/fig*
 figure/old
 figure_d*
+figure_ablation*
 requirements_*
 nohup*
 old
