@@ -1,5 +1,4 @@
 import argparse
-from attrdict import AttrDict
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -9,7 +8,7 @@ import yaml
 
 from dataset import HRTFDataset
 from sampling import sample_uniform
-from utils import hrtf2hrir, hrir2itd
+from utils import AttrDict, hrtf2hrir, hrir2itd
 
 
 def get_suffix_list():

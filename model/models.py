@@ -31,12 +31,20 @@ class FreqSrcPosCondAutoEncoder(nn.Module):
         self.num_mes_norm = config.num_mes_norm
 
         # Encoder
-        dim_cond_vec_enc = config.fourier_feature_mapping.num_features.source_position * 2 + config.fourier_feature_mapping.num_features.frequency * 2 + 2
+        dim_cond_vec_enc = config.fourier_feature_mapping.num_features.source_position * 2 + 2
+        if config.encoder.use_freq in [None, True]:
+            self.encoder_use_freq = True
+            dim_cond_vec_enc += config.fourier_feature_mapping.num_features.frequency * 2
+        else:
+            self.encoder_use_freq = False
         modules = []
         for l_e in range(config.encoder.num_layers):
             in_dim = 1 if l_e == 0 else config.encoder.mid_dim
             out_dim = config.encoder.out_dim if l_e == config.encoder.num_layers - 1 else config.encoder.mid_dim
-            post_prcs = l_e != (config.encoder.num_layers - 1)
+            if config.encoder.nonlinear in [None, True]:
+                post_prcs = l_e != (config.encoder.num_layers - 1)
+            else:
+                post_prcs = False
 
             modules.extend([
                 HyperLinearBlock(in_dim=in_dim,
@@ -48,12 +56,20 @@ class FreqSrcPosCondAutoEncoder(nn.Module):
         self.encoder = nn.Sequential(*modules)
 
         # Decoder
-        dim_cond_vec_dec = config.fourier_feature_mapping.num_features.source_position * 2 + config.fourier_feature_mapping.num_features.frequency * 2 + 1
+        dim_cond_vec_dec = config.fourier_feature_mapping.num_features.source_position * 2 + 1
+        if config.decoder.use_freq in [None, True]:
+            self.decoder_use_freq = True
+            dim_cond_vec_dec += config.fourier_feature_mapping.num_features.frequency * 2
+        else:
+            self.decoder_use_freq = False
         modules = []
         for l_d in range(config.decoder.num_layers):
             in_dim = config.decoder.in_dim if l_d == 0 else config.decoder.mid_dim
             out_dim = 1 if l_d == config.decoder.num_layers - 1 else config.decoder.mid_dim
-            post_prcs = l_d != (config.encoder.num_layers - 1)
+            if config.decoder.nonlinear in [None, True]:
+                post_prcs = l_d != (config.encoder.num_layers - 1)
+            else:
+                post_prcs = False
 
             modules.extend([
                 HyperLinearBlock(in_dim=in_dim,
@@ -82,7 +98,7 @@ class FreqSrcPosCondAutoEncoder(nn.Module):
             outputs.append(input.to(device))
         return outputs
 
-    def get_conditioning_vector(self, pos_cart, freq, use_num_pos=False, device="cuda"):
+    def get_conditioning_vector(self, pos_cart, freq=None, use_freq=True, use_num_pos=False, device="cuda"):
         S, B, _ = pos_cart.shape
         L = freq.shape[1]
         conditioning_vector = []
@@ -99,11 +115,12 @@ class FreqSrcPosCondAutoEncoder(nn.Module):
         pos_cart_all = th.cat((pos_cart, pos_cart_lr_flip, pos_cart[:, :, 0:1, :]), dim=2)  # (S, B, 2L+1, 32)
         conditioning_vector.append(pos_cart_all)
 
-        freq = freq / self.freq_norm
-        freq = self.ffm_freq(freq.unsqueeze(-1))  # (1, L, 16)
-        freq = freq.reshape(1, 1, L, -1).tile(S, B, 2, 1)  # (S, B, 2L, 16)
-        freq = th.cat((freq, th.zeros(S, B, 1, freq.shape[-1], device=device, dtype=th.float32)), dim=2)  # (S, B, 2L+1, 16)
-        conditioning_vector.append(freq)
+        if use_freq:
+            freq = freq / self.freq_norm
+            freq = self.ffm_freq(freq.unsqueeze(-1))  # (1, L, 16)
+            freq = freq.reshape(1, 1, L, -1).tile(S, B, 2, 1)  # (S, B, 2L, 16)
+            freq = th.cat((freq, th.zeros(S, B, 1, freq.shape[-1], device=device, dtype=th.float32)), dim=2)  # (S, B, 2L+1, 16)
+            conditioning_vector.append(freq)
 
         if use_num_pos:
             num_pos = B / self.num_mes_norm * th.ones(S, B, 2 * L + 1, 1, device=device, dtype=th.float32)  # (S, B, 2L+1, 1)
@@ -114,7 +131,7 @@ class FreqSrcPosCondAutoEncoder(nn.Module):
         delta = delta.reshape(1, 1, 2 * L + 1, 1).tile(S, B, 1, 1)  # (S, B, 2L+1, 1)
         conditioning_vector.append(delta)
 
-        conditioning_vector = th.cat(conditioning_vector, dim=-1)  # (S, B, 2L+1, 50 or 49)
+        conditioning_vector = th.cat(conditioning_vector, dim=-1)  # (S, B, 2L+1, 50 or 49 or 34 or 33)
         return conditioning_vector.to(device)
 
     def forward(self, hrtf_mag, itd, freq, mes_pos_cart, tar_pos_cart, dataset_name="none", device="cuda"):
@@ -143,13 +160,13 @@ class FreqSrcPosCondAutoEncoder(nn.Module):
 
         hrtf_mag = th.cat((hrtf_mag[:, :, 0, :], hrtf_mag[:, :, 1, :]), dim=-1)  # (S, B_m, 2L)
         encoder_input = th.cat((hrtf_mag, itd), dim=-1).unsqueeze(-1)  # (S, B_m, 2L+1, 1)
-        encoder_cond = self.get_conditioning_vector(mes_pos_cart, freq, use_num_pos=True, device=device)  # (S, B_m, 2L+1, 50)
+        encoder_cond = self.get_conditioning_vector(mes_pos_cart, freq, use_freq=self.encoder_use_freq, use_num_pos=True, device=device)  # (S, B_m, 2L+1, 50 or 34)
 
         latent = self.encoder((encoder_input, encoder_cond))[0]  # (S, B_m, 2L+1, D)
         prototype = th.mean(latent, dim=1, keepdim=True)  # (S, 1, 2L+1, D)
 
         decoder_input = prototype.tile(1, B_t, 1, 1)  # (S, B_t, 2L+1, D)
-        decoder_cond = self.get_conditioning_vector(tar_pos_cart, freq, use_num_pos=False, device=device)  # (S, B_t, 2L+1, 49)
+        decoder_cond = self.get_conditioning_vector(tar_pos_cart, freq, use_freq=self.decoder_use_freq, use_num_pos=False, device=device)  # (S, B_t, 2L+1, 49 or 33)
         decoder_output = self.decoder((decoder_input, decoder_cond))[0]  # (S, B_t, 2L+1, 1)
 
         hrtf_mag_pred = th.cat((decoder_output[:, :, None, :L, 0], decoder_output[:, :, None, L:2 * L, 0]), dim=2)  # (S, B_t, 2, L)

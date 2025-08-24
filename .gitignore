@@ -11,12 +11,13 @@ cuda-*
 data_dbg
 download
 exp/old
-exp/v1/hrir
-exp/v1/hrtf_mag
-exp/v1/itd
+exp/*/hrir
+exp/*/hrtf_mag
+exp/*/itd
 exp_baseline
 figure/fig*
 figure/old
 figure_d*
 requirements_*
 nohup*
+old
