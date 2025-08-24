@@ -16,6 +16,7 @@ exp/*/hrtf_mag
 exp/*/itd
 exp_baseline
 exp/v1_*
+figure/*
 figure/fig*
 figure/old
 figure_d*
