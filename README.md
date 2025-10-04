@@ -87,18 +87,6 @@ or
 ## Note
 - `sampling/grids/grid_t*d*.mat` contains 3D Cartesian coordinates of points in a spherical *t*-design [5], obtained from [6].
 
-## Cite
-```bibtex
-@article{Ito:OJSP2025,
-  author    = {Yuki Ito and Tomohiko Nakamura and Shoichi Koyama and Shuichi Sakamoto and Hiroshi Saruwatari},
-  title     = {Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency},
-  journal   = {IEEE Open Journal of Signal Processing},
-  year      = {2025},
-  publisher = {IEEE},
-  note      = {(accepted)}
-}
-```
-
 ## License
 [CC-BY-4.0](https://github.com/ikets/FSP-AE/blob/main/LICENSE)
 
