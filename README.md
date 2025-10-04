@@ -7,8 +7,7 @@
     <img src="https://github.com/ikets/FSP-AE/blob/main/asset/spatial_upsampling.png" width=90%>
 </div>
 
-This repository contains the official implementation of **"Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency" [[PDF]]()** published in the *IEEE Open Journal of Signal Processing*.<br>
-
+This repository contains the official implementation of an extended version of the HRTF spatial upsampling method proposed in [1].
 If you use this code in your experiments, please cite [1] in your work.
 
 ## System Requirements
@@ -104,8 +103,7 @@ or
 [CC-BY-4.0](https://github.com/ikets/FSP-AE/blob/main/LICENSE)
 
 ## References
-[1] Yuki Ito, Tomohiko Nakamura, Shoichi Koyama, Shuichi Sakamoto, and Hiroshi Saruwatari, <strong>“Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency,”</strong> <em>IEEE Open J. Signal Process.</em>, 2025.  (accepted) <br>
-<!-- vol. XX, pp. xxxx-xxxx, 2025.  [[PDF]]()  -->
+[1] Yuki Ito, Tomohiko Nakamura, Shoichi Koyama, and Hiroshi Saruwatari, <strong>“Head-Related Transfer Function Interpolation from Spatially Sparse Measurements Using Autoencoder with Source Position Conditioning,”</strong> in Proc. International Workshop on Acoustic Signal Enhancement (IWAENC), Sep., 2022.
 
 [2] Fabian Brinkmann, Manoj Dinakaran, Robert Pelzer, Peter Grosche,  Daniel Voss, and Stefan Weinzierl, “A cross-evaluated database of measured and simulated HRTFs including 3D head meshes, anthropometric features, and headphone impulse responses”, <em>J. Audio Eng. Soc.</em>, vol. 67, no. 9, pp. 705–718, 2019.<br>
 
