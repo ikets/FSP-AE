@@ -7,7 +7,8 @@
     <img src="https://github.com/ikets/FSP-AE/blob/main/asset/spatial_upsampling.png" width=90%>
 </div>
 
-This repository contains the official implementation of an extended version of the HRTF spatial upsampling method proposed in [1].
+
+This repository contains the official implementation of **"Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency"** [[HTML]](https://ieeexplore.ieee.org/document/11175492) [[PDF]](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=11175492) published in the *IEEE Open Journal of Signal Processing*.<br>
 If you use this code in your experiments, please cite [1] in your work.
 
 ## System Requirements
@@ -87,11 +88,27 @@ or
 ## Note
 - `sampling/grids/grid_t*d*.mat` contains 3D Cartesian coordinates of points in a spherical *t*-design [5], obtained from [6].
 
+
+## Cite
+```bibtex
+@article{Ito:OJSP2025,
+  author    = {Ito, Yuki and Nakamura, Tomohiko and Koyama, Shoichi and Sakamoto, Shuichi and Saruwatari, Hiroshi},
+  title     = {Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency},
+  journal   = {{IEEE} Open Journal of Signal Processing},
+  year      = {2025},
+  volume    = {6},
+  pages     = {1109-1123},
+  publisher = {IEEE},
+  doi       = {10.1109/OJSP.2025.3613132}}
+}
+```
+
 ## License
 [CC-BY-4.0](https://github.com/ikets/FSP-AE/blob/main/LICENSE)
 
 ## References
-[1] Yuki Ito, Tomohiko Nakamura, Shoichi Koyama, and Hiroshi Saruwatari, <strong>“Head-Related Transfer Function Interpolation from Spatially Sparse Measurements Using Autoencoder with Source Position Conditioning,”</strong> in Proc. International Workshop on Acoustic Signal Enhancement (IWAENC), Sep., 2022.
+[1] Yuki Ito, Tomohiko Nakamura, Shoichi Koyama, Shuichi Sakamoto, and Hiroshi Saruwatari, <strong>“Spatial Upsampling of Head-Related Transfer Function Using Neural Network Conditioned on Source Position and Frequency,”</strong> <em>IEEE Open J. Signal Process.</em>, vol. 6, pp. 1109-1123, 2025. <br>
+[[HTML]](https://ieeexplore.ieee.org/document/11175492) [[PDF]](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=11175492)
 
 [2] Fabian Brinkmann, Manoj Dinakaran, Robert Pelzer, Peter Grosche,  Daniel Voss, and Stefan Weinzierl, “A cross-evaluated database of measured and simulated HRTFs including 3D head meshes, anthropometric features, and headphone impulse responses”, <em>J. Audio Eng. Soc.</em>, vol. 67, no. 9, pp. 705–718, 2019.<br>
 
